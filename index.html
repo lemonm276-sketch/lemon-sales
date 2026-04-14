@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ระบบขายมะนาว</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Sarabun', system-ui, sans-serif; background: #f3f4f6; min-height: 100vh; padding: 16px; }
+.app { background: #fff; border-radius: 14px; border: 1px solid #e5e7eb; overflow: hidden; max-width: 960px; margin: 0 auto; }
+.header { background: #2d9e5f; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.header-title { color: #fff; font-size: 18px; font-weight: 700; }
+.header-sub { color: rgba(255,255,255,0.75); font-size: 11px; margin-top: 2px; }
+.tabs { display: flex; border-bottom: 1.5px solid #e5e7eb; background: #f9fafb; overflow-x: auto; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab-btn { padding: 11px 18px; font-size: 13px; font-weight: 600; cursor: pointer; background: none; border: none; border-bottom: 2.5px solid transparent; color: #6b7280; white-space: nowrap; margin-bottom: -1.5px; font-family: inherit; }
+.tab-btn.active { border-bottom-color: #2d9e5f; color: #2d9e5f; }
+.panel { display: none; padding: 18px; }
+.panel.active { display: block; }
+.flabel { font-size: 11px; color: #6b7280; margin-bottom: 4px; }
+.finput { border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 10px; font-size: 14px; width: 100%; outline: none; background: #fff; color: #111; font-family: inherit; }
+.finput:focus { border-color: #2d9e5f; }
+.top-row { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+.top-row .cust { flex: 1; min-width: 180px; }
+.top-row .dt { min-width: 148px; }
+/* desktop table */
+.tbl-wrap { overflow-x: auto; margin-bottom: 4px; }
+table.items { width: 100%; border-collapse: collapse; min-width: 620px; }
+table.items th { font-size: 12px; font-weight: 600; color: #6b7280; padding: 8px 7px; border-bottom: 1.5px solid #e5e7eb; text-align: left; white-space: nowrap; }
+table.items th.r { text-align: right; }
+table.items td { padding: 7px 7px; border-bottom: 0.5px solid #f3f4f6; vertical-align: middle; }
+table.items td.r { text-align: right; }
+.num-in { border: 1px solid #d1d5db; border-radius: 5px; padding: 6px 6px; font-size: 13px; text-align: right; width: 68px; outline: none; background: #fff; color: #111; font-family: inherit; }
+.num-in:focus { border-color: #2d9e5f; }
+.name-in { border: 1px solid #d1d5db; border-radius: 5px; padding: 6px 8px; font-size: 13px; width: 108px; outline: none; background: #fff; color: #111; font-family: inherit; }
+.name-in:focus { border-color: #2d9e5f; }
+.del-btn { background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 15px; padding: 2px 7px; border-radius: 4px; }
+.del-btn:hover { color: #e24b4a; }
+/* mobile cards */
+.item-cards { display: none; }
+.item-card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+.item-card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.item-card-head input { flex: 1; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 10px; font-size: 14px; outline: none; font-family: inherit; }
+.item-card-head input:focus { border-color: #2d9e5f; }
+.item-card-del { background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 16px; padding: 4px 8px; }
+.item-card-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.item-card-field label { font-size: 11px; color: #6b7280; display: block; margin-bottom: 3px; }
+.item-card-field input { border: 1px solid #d1d5db; border-radius: 6px; padding: 7px 8px; font-size: 13px; text-align: right; width: 100%; outline: none; font-family: inherit; }
+.item-card-field input:focus { border-color: #2d9e5f; }
+.item-card-total { margin-top: 8px; text-align: right; font-size: 12px; color: #6b7280; }
+.item-card-total b { font-size: 15px; color: #111; margin-left: 4px; }
+.add-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; cursor: pointer; color: #2d9e5f; font-size: 13px; font-weight: 600; border: 1.5px dashed #a0d4b4; border-radius: 8px; margin: 12px 0 18px; background: none; font-family: inherit; }
+.add-btn:hover { background: #f0faf5; }
+/* หมายเหตุ */
+.note-box { margin-bottom: 18px; }
+.note-box textarea { border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 12px; font-size: 13px; width: 100%; outline: none; font-family: inherit; color: #111; resize: vertical; min-height: 64px; line-height: 1.6; }
+.note-box textarea:focus { border-color: #2d9e5f; }
+.footer-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 18px; }
+.sum-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; }
+.sum-label { font-size: 11px; color: #6b7280; margin-bottom: 6px; }
+.sum-val { font-size: 26px; font-weight: 700; color: #111; }
+.sum-unit { font-size: 13px; color: #9ca3af; font-weight: 400; margin-left: 4px; }
+.net-box { background: #f0faf5; border: 1px solid #a0d4b4; border-radius: 10px; padding: 14px 18px; text-align: right; }
+.net-label { font-size: 12px; font-weight: 600; color: #1a7a49; }
+.net-val { font-size: 30px; font-weight: 700; color: #2d9e5f; letter-spacing: -1px; margin-top: 4px; }
+.net-note { font-size: 10px; color: #4a9e74; margin-top: 4px; }
+.sig-row { display: flex; gap: 40px; padding-top: 14px; border-top: 0.5px dashed #e5e7eb; margin-bottom: 14px; }
+.sig-line { border-bottom: 0.5px solid #d1d5db; height: 28px; margin-bottom: 4px; }
+.sig-label { font-size: 11px; color: #9ca3af; }
+.ty { text-align: center; font-size: 11px; color: #9ca3af; border-top: 0.5px solid #f3f4f6; padding-top: 12px; margin-bottom: 14px; }
+.save-row { display: flex; justify-content: flex-end; gap: 10px; }
+.btn-save { background: #f5b731; color: #1a1a1a; border: none; border-radius: 6px; padding: 10px 24px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.btn-print-float { background: #fff; color: #2d9e5f; border: 1px solid #2d9e5f; border-radius: 6px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+/* history */
+.stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+.stat-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; }
+.stat-lbl { font-size: 11px; color: #6b7280; margin-bottom: 4px; }
+.stat-v { font-size: 16px; font-weight: 700; color: #111; }
+.stat-v.green { color: #2d9e5f; }
+.toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.toolbar input { border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 10px; font-size: 13px; outline: none; font-family: inherit; background: #fff; color: #111; }
+.toolbar input:focus { border-color: #2d9e5f; }
+.btn-load { background: #2d9e5f; color: #fff; border: none; border-radius: 6px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.empty { text-align: center; padding: 40px 20px; color: #9ca3af; font-size: 13px; }
+table.hist { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 600px; }
+table.hist th { padding: 8px 10px; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 1.5px solid #e5e7eb; text-align: left; }
+table.hist th.r { text-align: right; }
+table.hist td { padding: 8px 10px; border-bottom: 0.5px solid #f3f4f6; }
+table.hist td.r { text-align: right; }
+.badge { background: #e6f7ef; color: #1a7a49; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+/* settings */
+.set-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+.set-title { font-size: 14px; font-weight: 700; color: #111; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.conn-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; }
+.dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.set-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.set-row > div { flex: 1; min-width: 140px; }
+.btn-test { background: #2d9e5f; color: #fff; border: none; border-radius: 6px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.hint { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 12px 14px; font-size: 12px; color: #7a5c00; line-height: 1.8; }
+.toast { position: fixed; top: 16px; right: 16px; z-index: 9999; color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; display: none; box-shadow: 0 4px 16px rgba(0,0,0,0.18); }
+/* responsive */
+@media (max-width: 640px) {
+  body { padding: 8px; }
+  .tbl-wrap { display: none; }
+  .item-cards { display: block; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .header-title { font-size: 15px; }
+}
+@media (max-width: 380px) { .stat-grid { grid-template-columns: 1fr; } }
+/* PRINT */
+@media print {
+  body { background: #fff; padding: 0; }
+  .app { border: none; border-radius: 0; max-width: 100%; }
+  .header { background: #2d9e5f !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .tabs, .save-row, .add-btn, .del-btn, .item-card-del, .btn-print-float, #panel-history, #panel-settings, #panel-customers { display: none !important; }
+  #panel-sale { display: block !important; padding: 16px; }
+  .finput, .name-in, .num-in, .item-card-head input, .item-card-field input { border: none !important; background: transparent !important; padding: 2px 4px !important; }
+  .note-box textarea { border: none !important; background: transparent !important; resize: none; }
+  .item-cards { display: block !important; }
+  .tbl-wrap { display: block !important; }
+  .item-card { border: none; padding: 4px 0; margin-bottom: 4px; }
+  .sum-box { background: #f9fafb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .net-box { background: #f0faf5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  table.items td, table.items th { padding: 5px 5px; }
+  .toast { display: none !important; }
+}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+<div class="app">
+
+  <div class="header">
+    <div>
+      <div class="header-title">ระบบขายมะนาว</div>
+      <div class="header-sub">ข้อมูลบันทึกออนไลน์อัตโนมัติ</div>
+    </div>
+    <button class="btn-print-float" onclick="window.print()">🖨 พิมพ์บิล</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('sale',this)">บิลขาย</button>
+    <button class="tab-btn" onclick="switchTab('history',this)">ประวัติการขาย</button>
+    <button class="tab-btn" onclick="switchTab('customers',this)">จัดการลูกค้า</button>
+    <button class="tab-btn" onclick="switchTab('settings',this)">ตั้งค่า Google Sheets</button>
+  </div>
+
+  <!-- บิลขาย -->
+
+  <div id="panel-sale" class="panel active">
+    <div class="top-row">
+      <div class="cust" style="position:relative">
+        <div class="flabel">ชื่อลูกค้า / เลขที่</div>
+        <input class="finput" id="customer" type="text" placeholder="พิมพ์ชื่อลูกค้า..." autocomplete="off" oninput="showDropdown('customer','cust-dropdown')" onfocus="showDropdown('customer','cust-dropdown')" />
+        <div id="cust-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #d1d5db;border-radius:0 0 8px 8px;z-index:200;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1)"></div>
+      </div>
+      <div class="dt"><div class="flabel">วันที่</div><input class="finput" id="sale-date" type="date" /></div>
+    </div>
+
+```
+<div class="tbl-wrap">
+  <table class="items">
+    <thead>
+      <tr>
+        <th>รายการสินค้า</th>
+        <th class="r">ต่อลัง</th>
+        <th class="r">จำนวนลัง</th>
+        <th class="r">จำนวนลูก</th>
+        <th class="r">ราคา/หน่วย</th>
+        <th class="r">รวมเงิน</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="items-body"></tbody>
+  </table>
+</div>
+
+<div class="item-cards" id="items-cards"></div>
+
+<button class="add-btn" onclick="addItem()">＋ เพิ่มรายการใหม่</button>
+
+<div class="footer-grid">
+  <div class="sum-box">
+    <div class="sum-label">ลังรวม</div>
+    <div class="sum-val"><span id="total-bags">0</span><span class="sum-unit">ลัง</span></div>
+  </div>
+  <div class="net-box">
+    <div class="net-label">ยอดชำระสุทธิ (NET TOTAL)</div>
+    <div class="net-val">฿<span id="net-total">0.00</span></div>
+    <div class="net-note">((ต่อลัง × จำนวนลัง) + จำนวนลูก) × ราคา/หน่วย</div>
+  </div>
+</div>
+
+<div class="note-box">
+  <div class="flabel">หมายเหตุ</div>
+  <textarea id="note" placeholder="หมายเหตุเพิ่มเติม..."></textarea>
+</div>
+
+<div class="sig-row">
+  <div style="flex:1"><div class="sig-line"></div><div class="sig-label">ผู้ส่งของ / Receiver</div></div>
+  <div style="flex:1"><div class="sig-line"></div><div class="sig-label">ผู้รับเงิน / Collector</div></div>
+</div>
+<div class="ty">ขอบคุณที่ใช้บริการ / THANK YOU FOR YOUR KIND ATTENTION</div>
+<div class="save-row"><button class="btn-save" onclick="saveToSheet()">บันทึก</button></div>
+```
+
+  </div>
+
+  <!-- ประวัติ -->
+
+  <div id="panel-history" class="panel">
+    <div class="stat-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+      <div class="stat-card"><div class="stat-lbl">ยอดขายรวม</div><div class="stat-v green" id="s-total">฿0.00</div></div>
+      <div class="stat-card"><div class="stat-lbl">จำนวนรายการ</div><div class="stat-v" id="s-rows">0 รายการ</div></div>
+      <div class="stat-card"><div class="stat-lbl">ลังรวม</div><div class="stat-v" id="s-bags">0 ลัง</div></div>
+    </div>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;margin-bottom:16px">
+      <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:10px">กรองข้อมูลตามช่วงวันที่</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <div><div class="flabel">จากวันที่</div><input type="date" id="f-date-from" class="finput" style="width:148px" /></div>
+        <div><div class="flabel">ถึงวันที่</div><input type="date" id="f-date-to" class="finput" style="width:148px" /></div>
+        <div style="flex:1;min-width:140px;position:relative">
+          <div class="flabel">ลูกค้า</div>
+          <input type="text" id="f-name" class="finput" placeholder="พิมพ์ชื่อ..." autocomplete="off" oninput="showDropdown('f-name','f-name-dd')" onfocus="showDropdown('f-name','f-name-dd')" />
+          <div id="f-name-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #d1d5db;border-radius:0 0 8px 8px;z-index:200;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1)"></div>
+        </div>
+        <button class="btn-load" onclick="loadHistory()">โหลด / รีเฟรช</button>
+      </div>
+    </div>
+    <div id="product-summary" style="display:none;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px">สรุปยอดแยกตามสินค้า</div>
+      <div id="product-summary-content" style="overflow-x:auto"></div>
+    </div>
+    <div id="daily-section" style="display:none;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px">ยอดขายรายวัน</div>
+      <div id="daily-content" style="overflow-x:auto"></div>
+    </div>
+    <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;display:none" id="detail-label">รายละเอียดทุกรายการ</div>
+    <div id="hist-content" class="empty">📋 กด "โหลด / รีเฟรช" เพื่อดึงข้อมูล</div>
+  </div>
+
+  <!-- จัดการลูกค้า -->
+
+  <div id="panel-customers" class="panel">
+    <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end">
+      <div style="flex:1;min-width:200px">
+        <div class="flabel">ชื่อลูกค้าใหม่</div>
+        <input class="finput" id="new-cust-name" type="text" placeholder="พิมพ์ชื่อลูกค้า..." />
+      </div>
+      <div style="min-width:160px">
+        <div class="flabel">เบอร์โทร (ถ้ามี)</div>
+        <input class="finput" id="new-cust-phone" type="text" placeholder="08x-xxx-xxxx" />
+      </div>
+      <button class="btn-load" onclick="addCustomer()">+ เพิ่มลูกค้า</button>
+    </div>
+    <div style="margin-bottom:12px">
+      <input class="finput" id="cust-search" type="text" placeholder="🔍 ค้นหาลูกค้า..." oninput="renderCustomers()" />
+    </div>
+    <div id="cust-list"></div>
+  </div>
+
+  <!-- ตั้งค่า -->
+
+  <div id="panel-settings" class="panel">
+    <div class="set-card">
+      <div class="set-title">
+        การเชื่อมต่อ Google Sheets
+        <span class="conn-badge" id="conn-badge" style="color:#9ca3af">
+          <span class="dot" id="conn-dot" style="background:#9ca3af"></span>
+          <span id="conn-text">ยังไม่ได้ทดสอบ</span>
+        </span>
+      </div>
+      <div style="margin-bottom:12px"><div class="flabel">Google Sheet ID</div><input class="finput" id="s-sid" type="text" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" /></div>
+      <div class="set-row">
+        <div><div class="flabel">ชื่อ Tab / Sheet</div><input class="finput" id="s-tab" type="text" placeholder="Sales" /></div>
+        <div><div class="flabel">API Key</div><input class="finput" id="s-key" type="password" placeholder="AIza..." /></div>
+      </div>
+      <button class="btn-test" onclick="testConn()">ทดสอบการเชื่อมต่อ</button>
+    </div>
+
+```
+<div class="set-card">
+  <div class="set-title">รูปแบบคอลัมน์ใน Sheet</div>
+  <div style="font-size:12px;color:#6b7280;margin-bottom:10px">ข้อมูลจะบันทึกในลำดับนี้</div>
+  <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr id="col-head"></tr></thead>
+      <tbody><tr id="col-body"></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="hint">
+  <strong>วิธีเชื่อมต่อ Google Sheets:</strong><br>
+  1. เปิด Google Cloud Console → เปิดใช้ Sheets API<br>
+  2. สร้าง API Key → Credentials → Create Credentials → API key<br>
+  3. เปิด Google Sheet → แชร์เป็น <strong>Anyone with link (Editor)</strong><br>
+  4. คัดลอก Sheet ID จาก URL ระหว่าง <strong>/d/</strong> กับ <strong>/edit</strong><br>
+  5. กรอกข้อมูลแล้วกด ทดสอบการเชื่อมต่อ
+</div>
+```
+
+  </div>
+</div>
+
+<script>
+const fmt  = n => Number(n||0).toLocaleString('th-TH');
+const fmtM = n => Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+const today = () => new Date().toISOString().split('T')[0];
+
+document.getElementById('sale-date').value = today();
+
+// column schema
+const colLetters = ['A','B','C','D','E','F','G','H','I'];
+const colNames   = ['วันที่','ลูกค้า','สินค้า','ต่อลัง','จำนวนลัง','จำนวนลูก','ราคา/หน่วย','รวมเงิน','หมายเหตุ'];
+colLetters.forEach((c,i) => {
+  document.getElementById('col-head').innerHTML += `<th style="padding:6px 10px;background:#f9fafb;font-weight:600;color:#6b7280;border:0.5px solid #e5e7eb;text-align:left">${c}</th>`;
+  document.getElementById('col-body').innerHTML += `<td style="padding:6px 10px;border:0.5px solid #e5e7eb;color:#374151">${colNames[i]}</td>`;
+});
+
+let items = [], _id = 0;
+const DEFAULTS = [
+  { name:'จัมโบ้',       perBag:'400' },
+  { name:'ลอย',         perBag:'500' },
+  { name:'พิเศษ',       perBag:'600' },
+  { name:'เหลือง', perBag:'' },
+];
+DEFAULTS.forEach(d => addItem(d.name, d.perBag));
+
+function addItem(name='', perBag='') {
+  items.push({ id:++_id, name, perBag, numBags:'', numFruits:'', price:'' });
+  render();
+}
+function removeItem(id) { items = items.filter(i => i.id !== id); render(); }
+function upd(id, field, val) {
+  const item = items.find(i => i.id === id);
+  if (item) { item[field] = val; calcTotals(); }
+}
+function rowTotal(item) {
+  const perBag    = parseFloat(item.perBag)    || 0;
+  const numBags   = parseFloat(item.numBags)   || 0;
+  const numFruits = parseFloat(item.numFruits) || 0;
+  const price     = parseFloat(item.price)     || 0;
+  return ((perBag * numBags) + numFruits) * price;
+}
+function calcTotals() {
+  const totalBags = items.reduce((s,i) => s + (parseFloat(i.numBags)||0), 0);
+  const net = items.reduce((s,i) => s + rowTotal(i), 0);
+  document.getElementById('total-bags').textContent = fmt(totalBags);
+  document.getElementById('net-total').textContent  = fmtM(net);
+  items.forEach(item => {
+    const el  = document.getElementById('rt-'+item.id);
+    const elc = document.getElementById('rtc-'+item.id);
+    if (el)  el.textContent  = fmtM(rowTotal(item));
+    if (elc) elc.textContent = fmtM(rowTotal(item));
+  });
+}
+function render() {
+  // Desktop
+  const tbody = document.getElementById('items-body');
+  tbody.innerHTML = '';
+  items.forEach(item => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input class="name-in" value="${esc(item.name)}" placeholder="ชื่อสินค้า..." oninput="upd(${item.id},'name',this.value)"></td>
+      <td class="r"><input class="num-in" type="number" value="${esc(item.perBag)}"    placeholder="0"    oninput="upd(${item.id},'perBag',this.value)"></td>
+      <td class="r"><input class="num-in" type="number" value="${esc(item.numBags)}"   placeholder="0"    oninput="upd(${item.id},'numBags',this.value)"></td>
+      <td class="r"><input class="num-in" type="number" value="${esc(item.numFruits)}" placeholder="0"    oninput="upd(${item.id},'numFruits',this.value)"></td>
+      <td class="r"><input class="num-in" type="number" value="${esc(item.price)}"     placeholder="0.00" step="0.01" oninput="upd(${item.id},'price',this.value)"></td>
+      <td class="r" id="rt-${item.id}" style="font-weight:700;font-size:13px">${fmtM(rowTotal(item))}</td>
+      <td><button class="del-btn" onclick="removeItem(${item.id})">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+  // Mobile cards
+  const cards = document.getElementById('items-cards');
+  cards.innerHTML = '';
+  items.forEach(item => {
+    const d = document.createElement('div');
+    d.className = 'item-card';
+    d.innerHTML = `
+      <div class="item-card-head">
+        <input value="${esc(item.name)}" placeholder="ชื่อสินค้า..." oninput="upd(${item.id},'name',this.value)">
+        <button class="item-card-del" onclick="removeItem(${item.id})">✕</button>
+      </div>
+      <div class="item-card-fields">
+        <div class="item-card-field"><label>ต่อลัง</label><input type="number" value="${esc(item.perBag)}"    placeholder="0"    oninput="upd(${item.id},'perBag',this.value)"></div>
+        <div class="item-card-field"><label>จำนวนลัง</label><input type="number" value="${esc(item.numBags)}"   placeholder="0"    oninput="upd(${item.id},'numBags',this.value)"></div>
+        <div class="item-card-field"><label>จำนวนลูก</label><input type="number" value="${esc(item.numFruits)}" placeholder="0"    oninput="upd(${item.id},'numFruits',this.value)"></div>
+        <div class="item-card-field"><label>ราคา/หน่วย</label><input type="number" value="${esc(item.price)}"    placeholder="0.00" step="0.01" oninput="upd(${item.id},'price',this.value)"></div>
+      </div>
+      <div class="item-card-total">รวม <b id="rtc-${item.id}">${fmtM(rowTotal(item))}</b></div>`;
+    cards.appendChild(d);
+  });
+  calcTotals();
+}
+function esc(v) { return String(v||'').replace(/"/g,'&quot;'); }
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+  document.querySelector('.btn-print-float').style.display = id==='sale' ? '' : 'none';
+}
+function showToast(msg, color) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.background = color||'#2d9e5f'; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+function getSettings() {
+  return { sid: document.getElementById('s-sid').value.trim(), tab: document.getElementById('s-tab').value.trim()||'Sales', key: document.getElementById('s-key').value.trim() };
+}
+async function testConn() {
+  const {sid,tab,key} = getSettings();
+  if (!sid||!key) { showToast('กรุณากรอก Sheet ID และ API Key','#e24b4a'); return; }
+  setConn('กำลังทดสอบ...','#f5b731');
+  try {
+    const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${encodeURIComponent(tab)}!A1:A1?key=${key}`);
+    if (res.ok) { setConn('เชื่อมต่อสำเร็จ','#2d9e5f'); showToast('เชื่อมต่อสำเร็จ!'); }
+    else { setConn('เชื่อมต่อไม่ได้','#e24b4a'); showToast('ตรวจสอบ Sheet ID / API Key','#e24b4a'); }
+  } catch(e) { setConn('ข้อผิดพลาด','#e24b4a'); showToast(e.message,'#e24b4a'); }
+}
+function setConn(msg,color) {
+  document.getElementById('conn-badge').style.color = color;
+  document.getElementById('conn-dot').style.background = color;
+  document.getElementById('conn-text').textContent = msg;
+}
+async function saveToSheet() {
+  const {sid,tab,key} = getSettings();
+  const customer = document.getElementById('customer').value.trim()||'-';
+  const date     = document.getElementById('sale-date').value||today();
+  const note     = document.getElementById('note').value.trim();
+  if (!sid||!key) { showToast('กรุณาตั้งค่า Google Sheets ก่อน','#e24b4a'); return; }
+  if (!items.length) { showToast('ไม่มีรายการสินค้า','#e24b4a'); return; }
+  const rows = items.map(item => {
+    const b=parseFloat(item.perBag)||0, n=parseFloat(item.numBags)||0, f=parseFloat(item.numFruits)||0, p=parseFloat(item.price)||0;
+    return [date, customer, item.name, b, n, f, p, (b*n*p).toFixed(2), note];
+  });
+  try {
+    const res = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${encodeURIComponent(tab)}:append?valueInputOption=USER_ENTERED&key=${key}`,
+      { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({values:rows}) }
+    );
+    if (res.ok) showToast('บันทึก '+rows.length+' รายการสำเร็จ!');
+    else { const e=await res.json(); showToast('บันทึกไม่ได้: '+(e.error?.message||''),'#e24b4a'); }
+  } catch(e) { showToast(e.message,'#e24b4a'); }
+}
+async function loadHistory() {
+  const {sid,tab,key} = getSettings();
+  if (!sid||!key) { showToast('กรุณาตั้งค่า Google Sheets ก่อน','#e24b4a'); return; }
+  const content = document.getElementById('hist-content');
+  content.innerHTML = '<div class="empty">กำลังโหลด...</div>';
+  document.getElementById('product-summary').style.display = 'none';
+  document.getElementById('daily-section').style.display = 'none';
+  document.getElementById('detail-label').style.display = 'none';
+  try {
+    const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${encodeURIComponent(tab)}?key=${key}`);
+    if (!res.ok) { content.innerHTML='<div class="empty">⚠️ ดึงข้อมูลไม่ได้</div>'; return; }
+    const data = await res.json();
+    const fdFrom = document.getElementById('f-date-from').value;
+    const fdTo   = document.getElementById('f-date-to').value;
+    const fn     = document.getElementById('f-name').value.toLowerCase();
+    let rows = (data.values||[]).filter(r=>r.length>=8);
+    if (fdFrom) rows = rows.filter(r => (r[0]||'') >= fdFrom);
+    if (fdTo)   rows = rows.filter(r => (r[0]||'') <= fdTo);
+    if (fn)     rows = rows.filter(r=>(r[1]||'').toLowerCase().includes(fn)||(r[2]||'').toLowerCase().includes(fn));
+
+    const totalAmt  = rows.reduce((s,r)=>s+(parseFloat(r[7])||0),0);
+    const totalBags = rows.reduce((s,r)=>s+(parseFloat(r[4])||0),0);
+    document.getElementById('s-total').textContent = '฿'+fmtM(totalAmt);
+    document.getElementById('s-rows').textContent  = fmt(rows.length)+' รายการ';
+    document.getElementById('s-bags').textContent  = fmt(totalBags)+' ลัง';
+
+    if (!rows.length) { content.innerHTML='<div class="empty">📭 ไม่พบข้อมูล</div>'; return; }
+
+    // ── สรุปแยกตามสินค้า ──
+    const byProduct = {};
+    rows.forEach(r => {
+      const name = r[2]||'-';
+      if (!byProduct[name]) byProduct[name] = { bags:0, fruits:0, amt:0, count:0 };
+      byProduct[name].bags   += parseFloat(r[4])||0;
+      byProduct[name].fruits += parseFloat(r[5])||0;
+      byProduct[name].amt    += parseFloat(r[7])||0;
+      byProduct[name].count++;
+    });
+    let phtml = '<table class="hist"><thead><tr>'
+      +'<th>สินค้า</th><th class="r">จำนวนลัง</th><th class="r">จำนวนลูก</th>'
+      +'<th class="r">จำนวนบิล</th><th class="r">ยอดรวม</th>'
+      +'</tr></thead><tbody>';
+    Object.entries(byProduct).sort((a,b)=>b[1].amt-a[1].amt).forEach(([name,d])=>{
+      phtml += `<tr>
+        <td><span class="badge">${name}</span></td>
+        <td class="r">${fmt(d.bags)}</td>
+        <td class="r">${fmt(d.fruits)}</td>
+        <td class="r">${fmt(d.count)}</td>
+        <td class="r" style="font-weight:700;color:#2d9e5f">฿${fmtM(d.amt)}</td>
+      </tr>`;
+    });
+    // grand total row
+    phtml += `<tr style="border-top:2px solid #e5e7eb;background:#f9fafb">
+      <td style="font-weight:700">รวมทั้งหมด</td>
+      <td class="r" style="font-weight:700">${fmt(totalBags)}</td>
+      <td class="r" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+(parseFloat(r[5])||0),0))}</td>
+      <td class="r" style="font-weight:700">${fmt(rows.length)}</td>
+      <td class="r" style="font-weight:700;color:#2d9e5f">฿${fmtM(totalAmt)}</td>
+    </tr>`;
+    phtml += '</tbody></table>';
+    document.getElementById('product-summary-content').innerHTML = phtml;
+    document.getElementById('product-summary').style.display = 'block';
+
+    // ── สรุปรายวัน ──
+    const byDay = {};
+    rows.forEach(r => {
+      const d = r[0]||'-';
+      if (!byDay[d]) byDay[d] = { bags:0, fruits:0, amt:0, count:0 };
+      byDay[d].bags   += parseFloat(r[4])||0;
+      byDay[d].fruits += parseFloat(r[5])||0;
+      byDay[d].amt    += parseFloat(r[7])||0;
+      byDay[d].count++;
+    });
+    let dhtml = '<table class="hist"><thead><tr>'
+      +'<th>วันที่</th><th class="r">จำนวนลัง</th><th class="r">จำนวนลูก</th>'
+      +'<th class="r">จำนวนรายการ</th><th class="r">ยอดรวม</th>'
+      +'</tr></thead><tbody>';
+    Object.entries(byDay).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([day,d])=>{
+      dhtml += `<tr>
+        <td style="font-weight:500">${day}</td>
+        <td class="r">${fmt(d.bags)}</td>
+        <td class="r">${fmt(d.fruits)}</td>
+        <td class="r">${fmt(d.count)}</td>
+        <td class="r" style="font-weight:700;color:#2d9e5f">฿${fmtM(d.amt)}</td>
+      </tr>`;
+    });
+    dhtml += `<tr style="border-top:2px solid #e5e7eb;background:#f9fafb">
+      <td style="font-weight:700">รวม ${Object.keys(byDay).length} วัน</td>
+      <td class="r" style="font-weight:700">${fmt(totalBags)}</td>
+      <td class="r" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+(parseFloat(r[5])||0),0))}</td>
+      <td class="r" style="font-weight:700">${fmt(rows.length)}</td>
+      <td class="r" style="font-weight:700;color:#2d9e5f">฿${fmtM(totalAmt)}</td>
+    </tr>`;
+    dhtml += '</tbody></table>';
+    document.getElementById('daily-content').innerHTML = dhtml;
+    document.getElementById('daily-section').style.display = 'block';
+
+    // ── รายละเอียด ──
+    document.getElementById('detail-label').style.display = 'block';
+    let html2 = '<div style="overflow-x:auto"><table class="hist"><thead><tr>'
+      +'<th>วันที่</th><th>ลูกค้า</th><th>สินค้า</th>'
+      +'<th class="r">ต่อลัง</th><th class="r">จำนวนลัง</th><th class="r">จำนวนลูก</th>'
+      +'<th class="r">ราคา/หน่วย</th><th class="r">รวมเงิน</th><th>หมายเหตุ</th>'
+      +'</tr></thead><tbody>';
+    rows.forEach(r => {
+      html2 += `<tr>
+        <td>${r[0]||''}</td><td>${r[1]||''}</td>
+        <td><span class="badge">${r[2]||''}</span></td>
+        <td class="r">${fmt(r[3])}</td><td class="r">${fmt(r[4])}</td><td class="r">${fmt(r[5])}</td>
+        <td class="r">${fmt(r[6])}</td>
+        <td class="r" style="font-weight:700;color:#2d9e5f">฿${fmtM(r[7])}</td>
+        <td style="font-size:12px;color:#6b7280">${r[8]||''}</td>
+      </tr>`;
+    });
+    html2 += '</tbody></table></div>';
+    content.innerHTML = html2;
+  } catch(e) { content.innerHTML='<div class="empty">⚠️ '+e.message+'</div>'; }
+}
+
+// ── Customers ──
+let customers = JSON.parse(localStorage.getItem('lemon_customers') || '[]');
+
+function saveCustomers() {
+  try { localStorage.setItem('lemon_customers', JSON.stringify(customers)); } catch(e){}
+}
+
+function addCustomer() {
+  const name  = document.getElementById('new-cust-name').value.trim();
+  const phone = document.getElementById('new-cust-phone').value.trim();
+  if (!name) { showToast('กรุณากรอกชื่อลูกค้า','#e24b4a'); return; }
+  if (customers.find(c => c.name === name)) { showToast('มีชื่อนี้แล้ว','#e24b4a'); return; }
+  customers.push({ id: Date.now(), name, phone });
+  saveCustomers();
+  document.getElementById('new-cust-name').value = '';
+  document.getElementById('new-cust-phone').value = '';
+  renderCustomers();
+  showToast('เพิ่ม "'+name+'" เรียบร้อย!');
+}
+
+function deleteCustomer(id) {
+  customers = customers.filter(c => c.id !== id);
+  saveCustomers();
+  renderCustomers();
+}
+
+function renderCustomers() {
+  const q = (document.getElementById('cust-search')?.value || '').toLowerCase();
+  const list = document.getElementById('cust-list');
+  if (!list) return;
+  const filtered = customers.filter(c => c.name.toLowerCase().includes(q) || (c.phone||'').includes(q));
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty" style="padding:24px">ยังไม่มีลูกค้า — กรอกด้านบนเพื่อเพิ่ม</div>';
+    return;
+  }
+  let h = '<table style="width:100%;border-collapse:collapse;font-size:13px">'
+    +'<thead><tr>'
+    +'<th style="padding:8px 10px;font-size:12px;font-weight:600;color:#6b7280;border-bottom:1.5px solid #e5e7eb;text-align:left">ชื่อลูกค้า</th>'
+    +'<th style="padding:8px 10px;font-size:12px;font-weight:600;color:#6b7280;border-bottom:1.5px solid #e5e7eb;text-align:left">เบอร์โทร</th>'
+    +'<th style="padding:8px 10px;font-size:12px;border-bottom:1.5px solid #e5e7eb"></th>'
+    +'</tr></thead><tbody>';
+  filtered.forEach(c => {
+    h += `<tr style="border-bottom:0.5px solid #f3f4f6">
+      <td style="padding:9px 10px;font-weight:500">${c.name}</td>
+      <td style="padding:9px 10px;color:#6b7280">${c.phone||'-'}</td>
+      <td style="padding:9px 6px;text-align:right">
+        <button onclick="selectCustomer('${c.name.replace(/'/g,"\'")}');switchTab('sale',document.querySelector('.tab-btn'))"
+          style="background:#e6f7ef;color:#1a7a49;border:none;border-radius:5px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;margin-right:6px;font-family:inherit">
+          เลือก
+        </button>
+        <button onclick="deleteCustomer(${c.id})"
+          style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:14px;padding:2px 6px">✕</button>
+      </td>
+    </tr>`;
+  });
+  h += '</tbody></table>';
+  list.innerHTML = h;
+}
+
+function selectCustomer(name) {
+  document.getElementById('customer').value = name;
+  const dd = document.getElementById('cust-dropdown');
+  if (dd) dd.style.display = 'none';
+}
+
+function showDropdown(inputId, ddId) {
+  const q  = (document.getElementById(inputId)?.value || '').toLowerCase();
+  const dd = document.getElementById(ddId);
+  if (!dd) return;
+  const filtered = customers.filter(c => !q || c.name.toLowerCase().includes(q) || (c.phone||'').includes(q));
+  if (!filtered.length) { dd.style.display = 'none'; return; }
+  let h = '';
+  filtered.slice(0, 8).forEach(c => {
+    const safeName = c.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    h += `<div onclick="document.getElementById('${inputId}').value='${safeName}';document.getElementById('${ddId}').style.display='none'"
+      style="padding:9px 12px;cursor:pointer;border-bottom:0.5px solid #f3f4f6;font-size:13px;display:flex;align-items:center;justify-content:space-between"
+      onmouseover="this.style.background='#f0faf5'" onmouseout="this.style.background=''">
+      <span style="font-weight:500">${c.name}</span>
+      ${c.phone ? '<span style="font-size:11px;color:#9ca3af">'+c.phone+'</span>' : ''}
+    </div>`;
+  });
+  dd.innerHTML = h;
+  dd.style.display = 'block';
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.cust') && !e.target.closest('[id$="-dd"]') && !e.target.closest('#f-name')) {
+    document.querySelectorAll('[id$="-dd"], #cust-dropdown, #f-name-dd').forEach(dd => dd.style.display = 'none');
+  }
+});
+
+renderCustomers();
+</script>
+
+</body>
+</html>
