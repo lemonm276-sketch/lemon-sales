@@ -898,14 +898,14 @@ function showDropdown(inputId, ddId) {
   });
 
   // ถ้าพิมพ์ชื่อแล้วไม่มีในรายการ → แสดงปุ่ม "เพิ่มลูกค้าใหม่"
-  // ปุ่มเพิ่มลูกค้าใหม่ — ใช้ onmousedown เพื่อให้ทำงานก่อน click-outside ปิด dropdown
+  // แสดง "ไม่พบ" + ปุ่มไปเพิ่ม
   if (q && !filtered.find(c => c.name.toLowerCase() === q)) {
     const safeQ = q.replace(/'/g,"\\'");
-    h += `<div onmousedown="event.preventDefault();goAddCustomer('${safeQ}')"
-      style="padding:10px 12px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;color:#2d9e5f;font-weight:600;border-top:1px solid #e5e7eb;background:#f0faf5"
-      onmouseover="this.style.background='#dcf5e8'" onmouseout="this.style.background='#f0faf5'">
-      <span style="font-size:18px;line-height:1">+</span>
-      <span>เพิ่ม "${q}" เป็นลูกค้าใหม่</span>
+    h += `<div style="padding:8px 12px;font-size:12px;color:#9ca3af;border-top:0.5px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <span>ไม่พบ "${q}"</span>
+      <span onmousedown="event.preventDefault();goAddCustomer('${safeQ}')"
+        style="color:#2d9e5f;font-weight:600;cursor:pointer;font-size:12px;white-space:nowrap;padding:3px 8px;border:1px solid #a0d4b4;border-radius:5px"
+        onmouseover="this.style.background='#f0faf5'" onmouseout="this.style.background=''">+ เพิ่มลูกค้า</span>
     </div>`;
   }
 
@@ -919,16 +919,19 @@ function goAddCustomer(prefill) {
   if (!prefill) return;
   const name = prefill.trim();
   if (!name) return;
-  // เพิ่มลูกค้าใหม่ทันที (ไม่มีเบอร์/ที่อยู่)
-  if (!customers.find(c => c.name.toLowerCase() === name.toLowerCase())) {
-    customers.push({ id: Date.now(), name, phone: '', addr: '', note: '' });
-    saveCustomers();
-    renderCustomers();
-    pushCustomerToSheet();
-    showToast('เพิ่ม "'+name+'" เรียบร้อย!');
-  }
-  // ใส่ชื่อกลับไปในช่อง
-  document.getElementById('customer').value = name;
+  // ไปหน้าจัดการลูกค้า พร้อม prefill ชื่อ
+  const custTab = document.querySelector('.tab-btn[onclick*="customers"]');
+  if (custTab) switchTab('customers', custTab);
+  setTimeout(() => {
+    const nameInput = document.getElementById('new-cust-name');
+    if (nameInput) {
+      nameInput.value = name;
+      nameInput.focus();
+      nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    // แสดง toast แนะนำ
+    showToast('กรอกข้อมูลแล้วกด "+ เพิ่มลูกค้า"');
+  }, 150);
 }
 
 document.addEventListener('click', e => {
