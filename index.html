@@ -549,14 +549,19 @@ async function confirmSave() {
     const data = await res.json();
     if (data.status==='ok') {
       showToast('บันทึก '+rows.length+' รายการสำเร็จ!');
-      // clear form
-      document.getElementById('customer').value = '';
-      document.getElementById('note').value = '';
-      document.getElementById('sale-date').value = today();
-      // reset items to defaults
-      items = [];
-      _id = 0;
-      DEFAULTS.forEach(d => addItem(d.name, d.perBag));
+      // ถามว่าจะพิมพ์บิลมั้ย
+      setTimeout(() => {
+        if (confirm('บันทึกสำเร็จ!\nต้องการพิมพ์บิลเลยมั้ย?')) {
+          openPrint();
+        }
+        // clear form หลังตอบ
+        document.getElementById('customer').value = '';
+        document.getElementById('note').value = '';
+        document.getElementById('sale-date').value = today();
+        items = [];
+        _id = 0;
+        DEFAULTS.forEach(d => addItem(d.name, d.perBag));
+      }, 300);
     }
     else showToast('บันทึกไม่ได้: '+(data.message||''),'#e24b4a');
   } catch(e) { showToast('บันทึกไม่ได้: '+e.message,'#e24b4a'); }
@@ -576,7 +581,13 @@ async function loadHistory() {
     const fdFrom = document.getElementById('f-date-from').value;
     const fdTo   = document.getElementById('f-date-to').value;
     const fn     = document.getElementById('f-name').value.toLowerCase();
-    let rows = (data.values||[]).map(r=>r.map(String)).filter(r=>r.length>=8);
+    // ดึงทุก row, skip header (แถวแรกที่มีคำว่า 'วันที่' หรือ 'date')
+    let allRows = (data.values||[]).map(r=>r.map(String));
+    // skip header row ถ้ามี
+    if (allRows.length && (allRows[0][0]||'').toLowerCase().includes('วัน')) {
+      allRows = allRows.slice(1);
+    }
+    let rows = allRows.filter(r => r.length >= 7 && (r[0]||'').trim() !== '');
     _summaryData = rows;
     // normalize วันที่ก่อนเปรียบเทียบ (รองรับ ISO string และ yyyy-mm-dd)
     const normDate = v => String(v||'').substring(0,10);
@@ -909,21 +920,20 @@ function showDropdown(inputId, ddId) {
 }
 
 function goAddCustomer(prefill) {
-  // ปิด dropdown
   document.querySelectorAll('[id$="-dd"], #cust-dropdown').forEach(d => d.style.display = 'none');
-  // ไปหน้าจัดการลูกค้า
-  const custTab = document.querySelector('.tab-btn[onclick*="customers"]');
-  if (custTab) switchTab('customers', custTab);
-  // กรอกชื่อล่วงหน้า
-  setTimeout(() => {
-    const nameInput = document.getElementById('new-cust-name');
-    if (nameInput) {
-      nameInput.value = prefill || '';
-      nameInput.focus();
-      // scroll to form
-      nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }, 100);
+  if (!prefill) return;
+  const name = prefill.trim();
+  if (!name) return;
+  // เพิ่มลูกค้าใหม่ทันที (ไม่มีเบอร์/ที่อยู่)
+  if (!customers.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+    customers.push({ id: Date.now(), name, phone: '', addr: '', note: '' });
+    saveCustomers();
+    renderCustomers();
+    pushCustomerToSheet();
+    showToast('เพิ่ม "'+name+'" เรียบร้อย!');
+  }
+  // ใส่ชื่อกลับไปในช่อง
+  document.getElementById('customer').value = name;
 }
 
 document.addEventListener('click', e => {
