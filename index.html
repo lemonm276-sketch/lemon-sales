@@ -568,8 +568,10 @@ async function loadHistory() {
     const fn     = document.getElementById('f-name').value.toLowerCase();
     let rows = (data.values||[]).map(r=>r.map(String)).filter(r=>r.length>=8);
     _summaryData = rows;
-    if (fdFrom) rows = rows.filter(r => (r[0]||'') >= fdFrom);
-    if (fdTo)   rows = rows.filter(r => (r[0]||'') <= fdTo);
+    // normalize วันที่ก่อนเปรียบเทียบ (รองรับ ISO string และ yyyy-mm-dd)
+    const normDate = v => String(v||'').substring(0,10);
+    if (fdFrom) rows = rows.filter(r => normDate(r[0]) >= fdFrom);
+    if (fdTo)   rows = rows.filter(r => normDate(r[0]) <= fdTo);
     if (fn)     rows = rows.filter(r=>(r[1]||'').toLowerCase().includes(fn)||(r[2]||'').toLowerCase().includes(fn));
 
     const totalAmt  = rows.reduce((s,r)=>s+(parseFloat(r[7])||0),0);
@@ -618,7 +620,7 @@ async function loadHistory() {
     // ── สรุปรายวัน ──
     const byDay = {};
     rows.forEach(r => {
-      const d = r[0]||'-';
+      const d = String(r[0]||'-').substring(0,10);
       if (!byDay[d]) byDay[d] = { bags:0, fruits:0, amt:0, count:0 };
       byDay[d].bags   += parseFloat(r[4])||0;
       byDay[d].fruits += parseFloat(r[5])||0;
@@ -658,7 +660,7 @@ async function loadHistory() {
       +'</tr></thead><tbody>';
     rows.forEach(r => {
       html2 += `<tr>
-        <td>${r[0]||''}</td><td>${r[1]||''}</td>
+        <td>${String(r[0]||'').substring(0,10)}</td><td>${r[1]||''}</td>
         <td><span class="badge">${r[2]||''}</span></td>
         <td class="r">${fmt(r[3])}</td><td class="r">${fmt(r[4])}</td><td class="r">${fmt(r[5])}</td>
         <td class="r">${fmt(r[6])}</td>
@@ -862,7 +864,7 @@ function showDropdown(inputId, ddId) {
   const dd = document.getElementById(ddId);
   if (!dd) return;
   const filtered = customers.filter(c => !q || c.name.toLowerCase().includes(q) || (c.phone||'').includes(q));
-  if (!filtered.length) { dd.style.display = 'none'; return; }
+
   let h = '';
   filtered.slice(0, 8).forEach(c => {
     const safeName = c.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
@@ -873,8 +875,45 @@ function showDropdown(inputId, ddId) {
       <span style="font-size:11px;color:#9ca3af">${c.phone||''} ${c.addr ? '· '+c.addr : ''}</span>
     </div>`;
   });
+
+  // ถ้าพิมพ์ชื่อแล้วไม่มีในรายการ → แสดงปุ่ม "เพิ่มลูกค้าใหม่"
+  if (q && !filtered.length) {
+    h += `<div onclick="goAddCustomer('${q.replace(/'/g,"\\'")}')"
+      style="padding:9px 12px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;color:#2d9e5f;font-weight:600;border-top:0.5px solid #e5e7eb"
+      onmouseover="this.style.background='#f0faf5'" onmouseout="this.style.background=''">
+      <span style="font-size:16px">+</span>
+      <span>เพิ่ม "${q}" เป็นลูกค้าใหม่</span>
+    </div>`;
+  } else if (q && filtered.length > 0 && !filtered.find(c => c.name.toLowerCase() === q)) {
+    // พิมพ์แล้วมีผลบางส่วน แต่ไม่มีชื่อตรงทั้งหมด → แสดงปุ่มเพิ่มด้วย
+    h += `<div onclick="goAddCustomer('${q.replace(/'/g,"\\'")}')"
+      style="padding:8px 12px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px;color:#4f86c6;border-top:0.5px solid #e5e7eb"
+      onmouseover="this.style.background='#f0faf5'" onmouseout="this.style.background=''">
+      <span>+</span><span>ไม่พบ? เพิ่ม "${q}" เป็นลูกค้าใหม่</span>
+    </div>`;
+  }
+
+  if (!h) { dd.style.display = 'none'; return; }
   dd.innerHTML = h;
   dd.style.display = 'block';
+}
+
+function goAddCustomer(prefill) {
+  // ปิด dropdown
+  document.querySelectorAll('[id$="-dd"], #cust-dropdown').forEach(d => d.style.display = 'none');
+  // ไปหน้าจัดการลูกค้า
+  const custTab = document.querySelector('.tab-btn[onclick*="customers"]');
+  if (custTab) switchTab('customers', custTab);
+  // กรอกชื่อล่วงหน้า
+  setTimeout(() => {
+    const nameInput = document.getElementById('new-cust-name');
+    if (nameInput) {
+      nameInput.value = prefill || '';
+      nameInput.focus();
+      // scroll to form
+      nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 100);
 }
 
 document.addEventListener('click', e => {
@@ -897,24 +936,21 @@ function openPrint() {
   let rowsHtml = '';
 
   items.forEach(item => {
-    if (!item.name && !item.numBags && !item.price) return;
     const b = parseFloat(item.perBag)    || 0;
     const n = parseFloat(item.numBags)   || 0;
     const f = parseFloat(item.numFruits) || 0;
     const p = parseFloat(item.price)     || 0;
     const amt = ((b * n) + f) * p;
+    if (amt === 0) return; // skip แถวที่ยอด = 0
     totalBags += n;
     net += amt;
 
-    // description line
-    let desc = `<span class="product">${item.name}</span>`;
-    if (b > 0) desc += ` <span class="detail">${fmt(b)}</span>`;
+    // ชื่อสินค้า + ต่อลัง ใน description
+    let desc = `<span class="product">${item.name||''}</span>`;
+    if (b > 0) desc += ` <span class="detail" style="font-weight:400;color:#555">${fmt(b)}</span>`;
 
-    // ลัง col | ลูก col แยก
-    // ถ้ามีทั้งลังและลูก: แสดงบรรทัดเดียวกัน
-    // ถ้ามีลูกอย่างเดียว: ช่องลังว่าง, ลูกอยู่ตำแหน่งลูก
-    const langCell  = n > 0 ? fmt(n) + ' ลัง' : '';
-    const luukCell  = f > 0 ? fmt(f) + ' ลูก' : '';
+    const langCell = n > 0 ? fmt(n) + ' ลัง' : '';
+    const luukCell = f > 0 ? fmt(f) + ' ลูก' : '';
 
     rowsHtml += `<tr>
       <td class="pb-desc">${desc}</td>
@@ -943,6 +979,12 @@ function openPrint() {
 // ── Print Summary ──
 let _summaryData = null;
 
+function fmtDate(raw) {
+  // แปลง ISO string เช่น 2026-04-15T17:00:00.000Z → 2026-04-15
+  if (!raw) return '-';
+  return String(raw).substring(0, 10);
+}
+
 function printSummary() {
   if (!_summaryData || !_summaryData.length) {
     showToast('กรุณาโหลดข้อมูลก่อนพิมพ์', '#e24b4a');
@@ -953,6 +995,14 @@ function printSummary() {
   const fdTo   = document.getElementById('f-date-to').value;
   const fn     = document.getElementById('f-name').value.trim();
 
+  // filter by selected range + customer
+  let data = _summaryData.slice();
+  if (fdFrom) data = data.filter(r => fmtDate(r[0]) >= fdFrom);
+  if (fdTo)   data = data.filter(r => fmtDate(r[0]) <= fdTo);
+  if (fn)     data = data.filter(r => (r[1]||'').toLowerCase().includes(fn.toLowerCase()));
+
+  if (!data.length) { showToast('ไม่พบข้อมูลในช่วงที่เลือก', '#e24b4a'); return; }
+
   // period label
   let period = '';
   if (fdFrom && fdTo) period = fdFrom + ' ถึง ' + fdTo;
@@ -962,34 +1012,39 @@ function printSummary() {
   document.getElementById('ps-period').textContent = period;
   document.getElementById('ps-customer-line').textContent = fn || '-';
 
-  // group by date
+  // group by date (normalized)
   const byDay = {};
-  _summaryData.forEach(r => {
-    const d = r[0] || '-';
+  data.forEach(r => {
+    const d = fmtDate(r[0]);
     if (!byDay[d]) byDay[d] = [];
     byDay[d].push(r);
   });
 
   let rowsHtml = '';
   let grandTotal = 0;
+  let grandBags  = 0;
 
   Object.keys(byDay).sort().forEach(day => {
     const dayRows = byDay[day];
-    let dayTotal = 0;
-    let dayBags  = 0;
+    let dayTotal = 0, dayBags = 0;
 
-    // label row: ชื่อลูกค้า / วันที่
-    const dayCust = (dayRows[0] ? (dayRows[0][1] || '-') : '-').replace(/['"]/g,'');
-    rowsHtml += `<tr style="border-top:1px solid #bbb">
-      <td colspan="3" style="font-size:10px;color:#888;padding:4px 6px 0">ชื่อลูกค้า</td>
-      <td colspan="2" style="font-size:10px;color:#888;padding:4px 6px 0;text-align:right">วันที่</td>
+    // filter out empty rows
+    const validRows = dayRows.filter(r => (parseFloat(r[7])||0) > 0);
+    if (!validRows.length) return;
+
+    const dayCust = (dayRows[0][1] || '-').replace(/['"]/g,'');
+
+    // header: ชื่อลูกค้า (ซ้าย) วันที่ (ขวา)
+    rowsHtml += `<tr style="border-top:1.5px solid #bbb">
+      <td colspan="3" style="font-size:10px;color:#888;padding:5px 6px 0">ชื่อลูกค้า</td>
+      <td colspan="3" style="font-size:10px;color:#888;padding:5px 6px 0;text-align:right">วันที่</td>
     </tr>
     <tr class="day-header">
-      <td colspan="3" style="padding-top:1px;padding-bottom:5px">${dayCust}</td>
-      <td colspan="2" style="padding-top:1px;padding-bottom:5px;text-align:right">${day}</td>
+      <td colspan="3" style="padding-top:1px;padding-bottom:6px;font-size:14px">${dayCust}</td>
+      <td colspan="3" style="padding-top:1px;padding-bottom:6px;text-align:right;font-size:13px">${day}</td>
     </tr>`;
 
-    dayRows.forEach(r => {
+    validRows.forEach(r => {
       const perBag  = parseFloat(r[3]) || 0;
       const numBags = parseFloat(r[4]) || 0;
       const fruits  = parseFloat(r[5]) || 0;
@@ -998,23 +1053,22 @@ function printSummary() {
       dayTotal += amt;
       dayBags  += numBags;
 
-      let qtyCell = numBags > 0 ? fmt(numBags) + ' ลัง' : '';
-      if (fruits > 0) qtyCell += (qtyCell ? ' ' : '') + fmt(fruits) + ' ลูก';
-
       const prodName = (r[2]||'').replace(/['"]/g,'');
+      const langCell = numBags > 0 ? fmt(numBags) + ' ลัง' : '';
+      const luukCell = fruits  > 0 ? fmt(fruits)  + ' ลูก' : '';
+
       rowsHtml += `<tr>
-        <td style="padding-left:12px">${prodName}</td>
-        <td class="c">${perBag > 0 ? fmt(perBag) : '-'}</td>
-        <td class="c">${qtyCell}</td>
-        <td class="r">${price > 0 ? fmtM(price) : '-'}</td>
+        <td style="padding-left:10px">${prodName}</td>
+        <td class="c">${perBag > 0 ? fmt(perBag) : ''}</td>
+        <td class="r">${langCell}</td>
+        <td class="r">${luukCell}</td>
+        <td class="r">${price > 0 ? fmtM(price) : ''}</td>
         <td class="r">${fmtM(amt)}</td>
       </tr>`;
     });
 
-    // day total row
     rowsHtml += `<tr class="day-total">
-      <td>รวม</td>
-      <td class="c"></td>
+      <td colspan="2">รวม</td>
       <td class="r">${fmt(dayBags)} ลัง</td>
       <td></td>
       <td></td>
@@ -1022,15 +1076,15 @@ function printSummary() {
     </tr>`;
 
     grandTotal += dayTotal;
+    grandBags  += dayBags;
   });
 
   document.getElementById('ps-rows').innerHTML = rowsHtml;
   document.getElementById('ps-grand').textContent = fmtM(grandTotal) + ' บาท';
-  // summary line: N วัน | N รายการ | N ลัง
+
   const nDays = Object.keys(byDay).length;
-  const nRows = _summaryData.length;
-  const nBags = _summaryData.reduce((s,r)=>s+(parseFloat(r[4])||0),0);
-  document.getElementById('ps-summary-line').textContent = nDays+' วัน    '+nDays+' บิล    '+fmt(nBags)+' ลัง';
+  document.getElementById('ps-summary-line').textContent =
+    nDays + ' วัน    ' + nDays + ' บิล    ' + fmt(grandBags) + ' ลัง';
 
   window.print();
 }
@@ -1106,14 +1160,15 @@ function printSummary() {
     .pb-bags { font-size: 13px; color: #444; margin-top: 4px; }
   </style>
 
-  <div class="pb-header">
-    <div class="pb-title">ใบรับสินค้า</div>
-    <div class="pb-sub">ระบบขายมะนาว</div>
-  </div>
-
-  <div class="pb-info">
-    <div>ลูกค้า: <strong id="pb-customer">-</strong></div>
-    <div>วันที่: <strong id="pb-date">-</strong></div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px;padding-bottom:6px;border-bottom:1.5px solid #000">
+    <div>
+      <div style="font-size:10px;color:#555">ลูกค้า:</div>
+      <div style="font-size:15px;font-weight:700" id="pb-customer">-</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:10px;color:#555">วันที่:</div>
+      <div style="font-size:13px;font-weight:600" id="pb-date">-</div>
+    </div>
   </div>
 
   <table class="pb-table">
@@ -1211,12 +1266,12 @@ function printSummary() {
   <table class="ps-table">
     <thead>
       <tr>
-        <th style="text-align:left;width:28%">สินค้า</th>
-        <th class="c" style="width:12%">ต่อลัง</th>
+        <th style="text-align:left;width:26%">สินค้า</th>
+        <th class="c" style="width:10%">ต่อลัง</th>
         <th class="r" style="width:13%">ลัง</th>
         <th class="r" style="width:13%">ลูก</th>
-        <th class="r" style="width:15%">หน่วยละ</th>
-        <th class="r" style="width:19%">จำนวนเงิน</th>
+        <th class="r" style="width:17%">หน่วยละ</th>
+        <th class="r" style="width:21%">จำนวนเงิน</th>
       </tr>
     </thead>
     <tbody id="ps-rows"></tbody>
