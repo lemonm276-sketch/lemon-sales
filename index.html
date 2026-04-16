@@ -110,21 +110,43 @@ table.hist td.r { text-align: right; }
 @media (max-width: 380px) { .stat-grid { grid-template-columns: 1fr; } }
 /* PRINT */
 @media print {
-  body { background: #fff; padding: 0; }
-  .app { border: none; border-radius: 0; max-width: 100%; }
-  .header { background: #2d9e5f !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .tabs, .save-row, .add-btn, .del-btn, .item-card-del, .btn-print-float, #panel-history, #panel-settings, #panel-customers { display: none !important; }
-  #panel-sale { display: block !important; padding: 16px; }
-  .finput, .name-in, .num-in, .item-card-head input, .item-card-field input { border: none !important; background: transparent !important; padding: 2px 4px !important; }
-  .note-box textarea { border: none !important; background: transparent !important; resize: none; }
-  .item-cards { display: block !important; }
-  .tbl-wrap { display: block !important; }
-  .item-card { border: none; padding: 4px 0; margin-bottom: 4px; }
-  .sum-box { background: #f9fafb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .net-box { background: #f0faf5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  table.items td, table.items th { padding: 5px 5px; }
-  .toast { display: none !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { background: #fff; padding: 0; margin: 0; font-family: 'Sarabun', sans-serif; }
+  .app, .header, .tabs, .save-row, .add-btn, .del-btn, .item-card-del,
+  .btn-print-float, #panel-history, #panel-settings, #panel-customers,
+  .footer-grid, .note-box, .sig-row, .ty, .tbl-wrap, .item-cards,
+  .top-row, .modal-overlay { display: none !important; }
+  #panel-sale { display: block !important; padding: 0 !important; }
+  #print-bill { display: block !important; }
+  #print-summary { display: block !important; }
 }
+.print-bill-wrap { display: none; }
+.print-summary-wrap { display: none; }
+
+/* ── Confirm Modal ── */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center; padding:16px; }
+.modal-overlay.open { display:flex; }
+.modal { background:#fff; border-radius:14px; width:100%; max-width:420px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.2); }
+.modal-header { background:#2d9e5f; padding:14px 18px; color:#fff; font-size:15px; font-weight:700; }
+.modal-body { padding:18px; }
+.modal-section { font-size:12px; font-weight:600; color:#6b7280; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px; }
+.modal-info { display:flex; justify-content:space-between; padding:7px 0; border-bottom:0.5px solid #f3f4f6; font-size:14px; }
+.modal-info:last-child { border-bottom:none; }
+.modal-info .label { color:#6b7280; }
+.modal-info .val { font-weight:600; color:#111; }
+.modal-total { display:flex; justify-content:space-between; align-items:center; background:#f0faf5; border:1px solid #a0d4b4; border-radius:10px; padding:12px 16px; margin-top:14px; }
+.modal-total .tlabel { font-size:13px; font-weight:600; color:#1a7a49; }
+.modal-total .tval { font-size:24px; font-weight:700; color:#2d9e5f; letter-spacing:-0.5px; }
+.modal-rows { margin:12px 0; max-height:200px; overflow-y:auto; }
+.modal-row { display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border-radius:8px; font-size:13px; }
+.modal-row:nth-child(odd) { background:#f9fafb; }
+.modal-row .rname { font-weight:500; color:#111; flex:1; }
+.modal-row .ramt { font-weight:700; color:#2d9e5f; margin-left:12px; }
+.modal-row .rdetail { font-size:11px; color:#9ca3af; }
+.modal-btns { display:flex; gap:10px; padding:0 18px 18px; }
+.modal-btns button { flex:1; padding:11px; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; border:none; }
+.btn-cancel { background:#f3f4f6; color:#6b7280; }
+.btn-confirm { background:#2d9e5f; color:#fff; }
 </style>
 </head>
 <body>
@@ -136,7 +158,7 @@ table.hist td.r { text-align: right; }
       <div class="header-title">ระบบขายมะนาว</div>
       <div class="header-sub">ข้อมูลบันทึกออนไลน์อัตโนมัติ</div>
     </div>
-    <button class="btn-print-float" onclick="window.print()">🖨 พิมพ์บิล</button>
+    <button class="btn-print-float" onclick="openPrint()">🖨 พิมพ์บิล</button>
   </div>
 
   <div class="tabs">
@@ -221,6 +243,7 @@ table.hist td.r { text-align: right; }
           <div id="f-name-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #d1d5db;border-radius:0 0 8px 8px;z-index:200;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1)"></div>
         </div>
         <button class="btn-load" onclick="loadHistory()">โหลด / รีเฟรช</button>
+        <button class="btn-load" style="background:#374151" onclick="printSummary()">🖨 พิมพ์สรุป</button>
       </div>
     </div>
     <div id="product-summary" style="display:none;margin-bottom:16px">
@@ -237,20 +260,42 @@ table.hist td.r { text-align: right; }
 
   <!-- จัดการลูกค้า -->
   <div id="panel-customers" class="panel">
-    <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end">
-      <div style="flex:1;min-width:200px">
-        <div class="flabel">ชื่อลูกค้าใหม่</div>
-        <input class="finput" id="new-cust-name" type="text" placeholder="พิมพ์ชื่อลูกค้า..." />
+
+    <!-- Add / Edit form -->
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:10px" id="cust-form-title">+ เพิ่มลูกค้าใหม่</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <div style="flex:1;min-width:160px">
+          <div class="flabel">ชื่อลูกค้า</div>
+          <input class="finput" id="new-cust-name" type="text" placeholder="พิมพ์ชื่อลูกค้า..." />
+        </div>
+        <div style="min-width:150px">
+          <div class="flabel">เบอร์โทร</div>
+          <input class="finput" id="new-cust-phone" type="text" placeholder="08x-xxx-xxxx" />
+        </div>
+        <div style="min-width:140px">
+          <div class="flabel">ที่อยู่</div>
+          <input class="finput" id="new-cust-addr" type="text" placeholder="ที่อยู่ (ถ้ามี)" />
+        </div>
+        <div style="min-width:140px">
+          <div class="flabel">หมายเหตุ</div>
+          <input class="finput" id="new-cust-note" type="text" placeholder="(ถ้ามี)" />
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-load" id="cust-submit-btn" onclick="submitCustomer()">+ เพิ่มลูกค้า</button>
+          <button id="cust-cancel-btn" onclick="cancelEditCustomer()" style="display:none;background:#f3f4f6;color:#6b7280;border:none;border-radius:6px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">ยกเลิก</button>
+        </div>
       </div>
-      <div style="min-width:160px">
-        <div class="flabel">เบอร์โทร (ถ้ามี)</div>
-        <input class="finput" id="new-cust-phone" type="text" placeholder="08x-xxx-xxxx" />
-      </div>
-      <button class="btn-load" onclick="addCustomer()">+ เพิ่มลูกค้า</button>
     </div>
-    <div style="margin-bottom:12px">
-      <input class="finput" id="cust-search" type="text" placeholder="🔍 ค้นหาลูกค้า..." oninput="renderCustomers()" />
+
+    <!-- Sync bar -->
+    <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
+      <input class="finput" id="cust-search" type="text" placeholder="🔍 ค้นหาลูกค้า..." oninput="renderCustomers()" style="flex:1;min-width:160px" />
+      <button class="btn-load" style="background:#4f86c6" onclick="syncCustomersFromSheet()">↓ โหลดจาก Sheet</button>
+      <button class="btn-load" style="background:#2d9e5f" onclick="syncCustomersToSheet()">↑ บันทึกขึ้น Sheet</button>
     </div>
+    <div id="cust-sync-status" style="font-size:12px;color:#6b7280;margin-bottom:10px;display:none"></div>
+
     <div id="cust-list"></div>
   </div>
 
@@ -420,13 +465,47 @@ function setConn(msg,color) {
   document.getElementById('conn-dot').style.background = color;
   document.getElementById('conn-text').textContent = msg;
 }
-async function saveToSheet() {
+function saveToSheet() {
   const {url} = getSettings();
   const customer = document.getElementById('customer').value.trim()||'-';
   const date     = document.getElementById('sale-date').value||today();
   const note     = document.getElementById('note').value.trim();
   if (!url) { showToast('กรุณาตั้งค่า Apps Script URL ก่อน','#e24b4a'); return; }
   if (!items.length) { showToast('ไม่มีรายการสินค้า','#e24b4a'); return; }
+
+  // fill modal
+  document.getElementById('m-customer').textContent = customer;
+  document.getElementById('m-date').textContent = date;
+  document.getElementById('m-note').textContent = note||'-';
+
+  let totalBags = 0, net = 0;
+  let rowsHtml = '';
+  items.forEach(item => {
+    const b=parseFloat(item.perBag)||0, n=parseFloat(item.numBags)||0, f=parseFloat(item.numFruits)||0, p=parseFloat(item.price)||0;
+    const amt = ((b*n)+f)*p;
+    totalBags += n; net += amt;
+    rowsHtml += `<div class="modal-row">
+      <div><div class="rname">${item.name||'-'}</div>
+      <div class="rdetail">(${fmt(b)}×${fmt(n)})+${fmt(f)} ลูก × ฿${fmt(p)}</div></div>
+      <div class="ramt">฿${fmtM(amt)}</div>
+    </div>`;
+  });
+  document.getElementById('m-rows').innerHTML = rowsHtml;
+  document.getElementById('m-bags').textContent = fmt(totalBags)+' ลัง';
+  document.getElementById('m-total').textContent = '฿'+fmtM(net);
+  document.getElementById('confirm-modal').classList.add('open');
+}
+
+function closeConfirm() {
+  document.getElementById('confirm-modal').classList.remove('open');
+}
+
+async function confirmSave() {
+  closeConfirm();
+  const {url} = getSettings();
+  const customer = document.getElementById('customer').value.trim()||'-';
+  const date     = document.getElementById('sale-date').value||today();
+  const note     = document.getElementById('note').value.trim();
   const rows = items.map(item => {
     const b=parseFloat(item.perBag)||0, n=parseFloat(item.numBags)||0, f=parseFloat(item.numFruits)||0, p=parseFloat(item.price)||0;
     return [date, customer, item.name, b, n, f, p, (((b*n)+f)*p).toFixed(2), note];
@@ -458,6 +537,7 @@ async function loadHistory() {
     const fdTo   = document.getElementById('f-date-to').value;
     const fn     = document.getElementById('f-name').value.toLowerCase();
     let rows = (data.values||[]).map(r=>r.map(String)).filter(r=>r.length>=8);
+    _summaryData = rows;
     if (fdFrom) rows = rows.filter(r => (r[0]||'') >= fdFrom);
     if (fdTo)   rows = rows.filter(r => (r[0]||'') <= fdTo);
     if (fn)     rows = rows.filter(r=>(r[1]||'').toLowerCase().includes(fn)||(r[2]||'').toLowerCase().includes(fn));
@@ -568,49 +648,106 @@ function saveCustomers() {
   try { localStorage.setItem('lemon_customers', JSON.stringify(customers)); } catch(e){}
 }
 
-function addCustomer() {
+// ── Customer CRUD + Sheet sync ──
+const CUST_TAB = 'Customers';
+let _editCustId = null;
+
+function submitCustomer() {
   const name  = document.getElementById('new-cust-name').value.trim();
   const phone = document.getElementById('new-cust-phone').value.trim();
+  const addr  = document.getElementById('new-cust-addr').value.trim();
+  const note  = document.getElementById('new-cust-note').value.trim();
   if (!name) { showToast('กรุณากรอกชื่อลูกค้า','#e24b4a'); return; }
-  if (customers.find(c => c.name === name)) { showToast('มีชื่อนี้แล้ว','#e24b4a'); return; }
-  customers.push({ id: Date.now(), name, phone });
+
+  if (_editCustId !== null) {
+    // edit mode
+    const c = customers.find(x => x.id === _editCustId);
+    if (c) { c.name = name; c.phone = phone; c.addr = addr; c.note = note; }
+    cancelEditCustomer();
+    showToast('แก้ไข "'+name+'" เรียบร้อย!');
+  } else {
+    // add mode
+    if (customers.find(c => c.name === name)) { showToast('มีชื่อนี้แล้ว','#e24b4a'); return; }
+    customers.push({ id: Date.now(), name, phone, addr, note });
+    document.getElementById('new-cust-name').value = '';
+    document.getElementById('new-cust-phone').value = '';
+    document.getElementById('new-cust-addr').value = '';
+    document.getElementById('new-cust-note').value = '';
+    showToast('เพิ่ม "'+name+'" เรียบร้อย!');
+  }
   saveCustomers();
-  document.getElementById('new-cust-name').value = '';
-  document.getElementById('new-cust-phone').value = '';
   renderCustomers();
-  showToast('เพิ่ม "'+name+'" เรียบร้อย!');
+}
+
+function editCustomer(id) {
+  const c = customers.find(x => x.id === id);
+  if (!c) return;
+  _editCustId = id;
+  document.getElementById('new-cust-name').value  = c.name;
+  document.getElementById('new-cust-phone').value = c.phone || '';
+  document.getElementById('new-cust-addr').value  = c.addr  || '';
+  document.getElementById('new-cust-note').value  = c.note  || '';
+  document.getElementById('cust-form-title').textContent = '✏️ แก้ไขลูกค้า';
+  document.getElementById('cust-submit-btn').textContent = 'บันทึก';
+  document.getElementById('cust-cancel-btn').style.display = '';
+  document.getElementById('new-cust-name').focus();
+  window.scrollTo(0,0);
+}
+
+function cancelEditCustomer() {
+  _editCustId = null;
+  document.getElementById('new-cust-name').value  = '';
+  document.getElementById('new-cust-phone').value = '';
+  document.getElementById('new-cust-addr').value  = '';
+  document.getElementById('new-cust-note').value  = '';
+  document.getElementById('cust-form-title').textContent = '+ เพิ่มลูกค้าใหม่';
+  document.getElementById('cust-submit-btn').textContent = '+ เพิ่มลูกค้า';
+  document.getElementById('cust-cancel-btn').style.display = 'none';
 }
 
 function deleteCustomer(id) {
-  customers = customers.filter(c => c.id !== id);
+  const c = customers.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm('ลบ "'+c.name+'" ออกจากรายการ?')) return;
+  customers = customers.filter(x => x.id !== id);
   saveCustomers();
   renderCustomers();
+  showToast('ลบเรียบร้อย');
 }
 
 function renderCustomers() {
   const q = (document.getElementById('cust-search')?.value || '').toLowerCase();
   const list = document.getElementById('cust-list');
   if (!list) return;
-  const filtered = customers.filter(c => c.name.toLowerCase().includes(q) || (c.phone||'').includes(q));
+  const filtered = customers.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    (c.phone||'').includes(q) ||
+    (c.note||'').toLowerCase().includes(q)
+  );
   if (!filtered.length) {
-    list.innerHTML = '<div class="empty" style="padding:24px">ยังไม่มีลูกค้า — กรอกด้านบนเพื่อเพิ่ม</div>';
+    list.innerHTML = '<div class="empty" style="padding:24px">ยังไม่มีลูกค้า — เพิ่มด้านบนหรือโหลดจาก Sheet</div>';
     return;
   }
   let h = '<table style="width:100%;border-collapse:collapse;font-size:13px">'
     +'<thead><tr>'
     +'<th style="padding:8px 10px;font-size:12px;font-weight:600;color:#6b7280;border-bottom:1.5px solid #e5e7eb;text-align:left">ชื่อลูกค้า</th>'
     +'<th style="padding:8px 10px;font-size:12px;font-weight:600;color:#6b7280;border-bottom:1.5px solid #e5e7eb;text-align:left">เบอร์โทร</th>'
+    +'<th style="padding:8px 10px;font-size:12px;font-weight:600;color:#6b7280;border-bottom:1.5px solid #e5e7eb;text-align:left">ที่อยู่</th>'
+    +'<th style="padding:8px 10px;font-size:12px;font-weight:600;color:#6b7280;border-bottom:1.5px solid #e5e7eb;text-align:left">หมายเหตุ</th>'
     +'<th style="padding:8px 10px;font-size:12px;border-bottom:1.5px solid #e5e7eb"></th>'
     +'</tr></thead><tbody>';
   filtered.forEach(c => {
+    const sn = c.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     h += `<tr style="border-bottom:0.5px solid #f3f4f6">
       <td style="padding:9px 10px;font-weight:500">${c.name}</td>
       <td style="padding:9px 10px;color:#6b7280">${c.phone||'-'}</td>
-      <td style="padding:9px 6px;text-align:right">
-        <button onclick="selectCustomer('${c.name.replace(/'/g,"\'")}');switchTab('sale',document.querySelector('.tab-btn'))"
-          style="background:#e6f7ef;color:#1a7a49;border:none;border-radius:5px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;margin-right:6px;font-family:inherit">
-          เลือก
-        </button>
+      <td style="padding:9px 10px;color:#6b7280;font-size:12px">${c.addr||'-'}</td>
+      <td style="padding:9px 10px;color:#6b7280;font-size:12px">${c.note||'-'}</td>
+      <td style="padding:9px 6px;text-align:right;white-space:nowrap">
+        <button onclick="selectCustomer('${sn}');switchTab('sale',document.querySelector('.tab-btn'))"
+          style="background:#e6f7ef;color:#1a7a49;border:none;border-radius:5px;padding:4px 9px;font-size:12px;font-weight:600;cursor:pointer;margin-right:4px;font-family:inherit">เลือก</button>
+        <button onclick="editCustomer(${c.id})"
+          style="background:#eef2ff;color:#4338ca;border:none;border-radius:5px;padding:4px 9px;font-size:12px;font-weight:600;cursor:pointer;margin-right:4px;font-family:inherit">แก้ไข</button>
         <button onclick="deleteCustomer(${c.id})"
           style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:14px;padding:2px 6px">✕</button>
       </td>
@@ -618,6 +755,51 @@ function renderCustomers() {
   });
   h += '</tbody></table>';
   list.innerHTML = h;
+}
+
+async function syncCustomersToSheet() {
+  const {url} = getSettings();
+  if (!url) { showToast('กรุณาตั้งค่า Apps Script URL ก่อน','#e24b4a'); return; }
+  if (!customers.length) { showToast('ไม่มีข้อมูลลูกค้า','#e24b4a'); return; }
+  setSyncStatus('กำลังบันทึกขึ้น Sheet...');
+  const rows = customers.map(c => [c.id, c.name, c.phone||'', c.addr||'', c.note||'']);
+  try {
+    const res = await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ action:'syncCustomers', rows })
+    });
+    const data = await res.json();
+    if (data.status==='ok') { showToast('บันทึกลูกค้าขึ้น Sheet สำเร็จ!'); setSyncStatus(''); }
+    else { showToast('บันทึกไม่ได้: '+(data.message||''),'#e24b4a'); setSyncStatus(''); }
+  } catch(e) { showToast(e.message,'#e24b4a'); setSyncStatus(''); }
+}
+
+async function syncCustomersFromSheet() {
+  const {url} = getSettings();
+  if (!url) { showToast('กรุณาตั้งค่า Apps Script URL ก่อน','#e24b4a'); return; }
+  setSyncStatus('กำลังโหลดจาก Sheet...');
+  try {
+    const res = await fetch(url+'?action=getCustomers');
+    const data = await res.json();
+    if (data.customers) {
+      customers = data.customers.map(r => ({
+        id: parseInt(r[0]) || Date.now(),
+        name: r[1]||'', phone: r[2]||'', addr: r[3]||'', note: r[4]||''
+      })).filter(c => c.name);
+      saveCustomers();
+      renderCustomers();
+      showToast('โหลดลูกค้า '+customers.length+' รายการจาก Sheet สำเร็จ!');
+      setSyncStatus('');
+    } else { showToast('ไม่พบข้อมูลใน Sheet','#e24b4a'); setSyncStatus(''); }
+  } catch(e) { showToast(e.message,'#e24b4a'); setSyncStatus(''); }
+}
+
+function setSyncStatus(msg) {
+  const el = document.getElementById('cust-sync-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
 }
 
 function selectCustomer(name) {
@@ -639,7 +821,7 @@ function showDropdown(inputId, ddId) {
       style="padding:9px 12px;cursor:pointer;border-bottom:0.5px solid #f3f4f6;font-size:13px;display:flex;align-items:center;justify-content:space-between"
       onmouseover="this.style.background='#f0faf5'" onmouseout="this.style.background=''">
       <span style="font-weight:500">${c.name}</span>
-      ${c.phone ? '<span style="font-size:11px;color:#9ca3af">'+c.phone+'</span>' : ''}
+      <span style="font-size:11px;color:#9ca3af">${c.phone||''} ${c.addr ? '· '+c.addr : ''}</span>
     </div>`;
   });
   dd.innerHTML = h;
@@ -653,6 +835,344 @@ document.addEventListener('click', e => {
 });
 
 renderCustomers();
+
+function openPrint() {
+  const customer = document.getElementById('customer').value.trim() || '-';
+  const date     = document.getElementById('sale-date').value || today();
+  const note     = document.getElementById('note').value.trim();
+
+  document.getElementById('pb-customer').textContent = customer;
+  document.getElementById('pb-date').textContent = date;
+
+  let totalBags = 0, net = 0;
+  let rowsHtml = '';
+
+  items.forEach(item => {
+    if (!item.name && !item.numBags && !item.price) return;
+    const b = parseFloat(item.perBag)    || 0;
+    const n = parseFloat(item.numBags)   || 0;
+    const f = parseFloat(item.numFruits) || 0;
+    const p = parseFloat(item.price)     || 0;
+    const amt = ((b * n) + f) * p;
+    totalBags += n;
+    net += amt;
+
+    // description line
+    let desc = `<span class="product">${item.name}</span>`;
+    if (b > 0) desc += ` <span class="detail">${fmt(b)}</span>`;
+
+    // quantity cell: "5 ลัง  200 ลูก" or just "5 ลัง"
+    let qty = '';
+    if (n > 0) qty += `${fmt(n)} ลัง`;
+    if (f > 0) qty += `${n > 0 ? '&nbsp;&nbsp;' : ''}${fmt(f)} ลูก`;
+
+    rowsHtml += `<tr>
+      <td class="pb-desc">${desc}</td>
+      <td class="c">${qty}</td>
+      <td class="r">${fmtM(p)}</td>
+      <td class="r">${fmtM(amt)}</td>
+    </tr>`;
+  });
+
+  document.getElementById('pb-rows').innerHTML = rowsHtml;
+  document.getElementById('pb-bags-total').textContent = fmt(totalBags) + ' ลัง';
+  document.getElementById('pb-net').textContent = '฿' + fmtM(net);
+
+  if (note) {
+    document.getElementById('pb-note').textContent = note;
+    document.getElementById('pb-note-wrap').style.display = 'block';
+  } else {
+    document.getElementById('pb-note-wrap').style.display = 'none';
+  }
+
+  window.print();
+}
+
+
+// ── Print Summary ──
+let _summaryData = null;
+
+function printSummary() {
+  if (!_summaryData || !_summaryData.length) {
+    showToast('กรุณาโหลดข้อมูลก่อนพิมพ์', '#e24b4a');
+    return;
+  }
+
+  const fdFrom = document.getElementById('f-date-from').value;
+  const fdTo   = document.getElementById('f-date-to').value;
+  const fn     = document.getElementById('f-name').value.trim();
+
+  // period label
+  let period = '';
+  if (fdFrom && fdTo) period = fdFrom + ' ถึง ' + fdTo;
+  else if (fdFrom) period = 'ตั้งแต่ ' + fdFrom;
+  else if (fdTo)   period = 'ถึง ' + fdTo;
+  else             period = 'ทุกรายการ';
+  document.getElementById('ps-period').textContent = period;
+  document.getElementById('ps-customer-line').textContent = fn || '-';
+
+  // group by date
+  const byDay = {};
+  _summaryData.forEach(r => {
+    const d = r[0] || '-';
+    if (!byDay[d]) byDay[d] = [];
+    byDay[d].push(r);
+  });
+
+  let rowsHtml = '';
+  let grandTotal = 0;
+
+  Object.keys(byDay).sort().forEach(day => {
+    const dayRows = byDay[day];
+    let dayTotal = 0;
+    let dayBags  = 0;
+
+    // label row: ชื่อลูกค้า / วันที่
+    const dayCust = (dayRows[0] ? (dayRows[0][1] || '-') : '-').replace(/['"]/g,'');
+    rowsHtml += `<tr style="border-top:1px solid #bbb">
+      <td colspan="3" style="font-size:10px;color:#888;padding:4px 6px 0">ชื่อลูกค้า</td>
+      <td colspan="2" style="font-size:10px;color:#888;padding:4px 6px 0;text-align:right">วันที่</td>
+    </tr>
+    <tr class="day-header">
+      <td colspan="3" style="padding-top:1px;padding-bottom:5px">${dayCust}</td>
+      <td colspan="2" style="padding-top:1px;padding-bottom:5px;text-align:right">${day}</td>
+    </tr>`;
+
+    dayRows.forEach(r => {
+      const perBag  = parseFloat(r[3]) || 0;
+      const numBags = parseFloat(r[4]) || 0;
+      const fruits  = parseFloat(r[5]) || 0;
+      const price   = parseFloat(r[6]) || 0;
+      const amt     = parseFloat(r[7]) || 0;
+      dayTotal += amt;
+      dayBags  += numBags;
+
+      let qtyCell = numBags > 0 ? fmt(numBags) + ' ลัง' : '';
+      if (fruits > 0) qtyCell += (qtyCell ? ' ' : '') + fmt(fruits) + ' ลูก';
+
+      const prodName = (r[2]||'').replace(/['"]/g,'');
+      rowsHtml += `<tr>
+        <td style="padding-left:12px">${prodName}</td>
+        <td class="c">${perBag > 0 ? fmt(perBag) : '-'}</td>
+        <td class="c">${qtyCell}</td>
+        <td class="r">${price > 0 ? fmtM(price) : '-'}</td>
+        <td class="r">${fmtM(amt)}</td>
+      </tr>`;
+    });
+
+    // day total row
+    rowsHtml += `<tr class="day-total">
+      <td>รวม</td>
+      <td class="c">${fmt(dayBags)} ลัง</td>
+      <td></td>
+      <td></td>
+      <td class="r">฿${fmtM(dayTotal)}</td>
+    </tr>`;
+
+    grandTotal += dayTotal;
+  });
+
+  document.getElementById('ps-rows').innerHTML = rowsHtml;
+  document.getElementById('ps-grand').textContent = '฿' + fmtM(grandTotal);
+  // summary line: N วัน | N รายการ | N ลัง
+  const nDays = Object.keys(byDay).length;
+  const nRows = _summaryData.length;
+  const nBags = _summaryData.reduce((s,r)=>s+(parseFloat(r[4])||0),0);
+  document.getElementById('ps-summary-line').textContent = nDays+' วัน    '+nDays+' บิล    '+fmt(nBags)+' ลัง';
+
+  window.print();
+}
+
 </script>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal">
+    <div class="modal-header">📋 ยืนยันการบันทึก</div>
+    <div class="modal-body">
+      <div class="modal-section">ข้อมูลบิล</div>
+      <div class="modal-info"><span class="label">ลูกค้า</span><span class="val" id="m-customer">-</span></div>
+      <div class="modal-info"><span class="label">วันที่</span><span class="val" id="m-date">-</span></div>
+      <div class="modal-info"><span class="label">หมายเหตุ</span><span class="val" id="m-note">-</span></div>
+
+      <div class="modal-section" style="margin-top:14px">รายการสินค้า</div>
+      <div class="modal-rows" id="m-rows"></div>
+
+      <div class="modal-info" style="border-top:1px solid #e5e7eb;padding-top:8px;margin-top:4px">
+        <span class="label">ลังรวม</span><span class="val" id="m-bags">0 ลัง</span>
+      </div>
+
+      <div class="modal-total">
+        <span class="tlabel">ยอดชำระสุทธิ</span>
+        <span class="tval" id="m-total">฿0.00</span>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeConfirm()">ยกเลิก</button>
+      <button class="btn-confirm" onclick="confirmSave()">✓ ยืนยันบันทึก</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Print Bill -->
+<div id="print-bill" class="print-bill-wrap">
+  <style>
+    @media print {
+      #print-bill {
+        display: block !important;
+        font-family: 'Sarabun', sans-serif;
+        font-size: 14px;
+        color: #000;
+        padding: 12px 16px;
+        max-width: 100%;
+      }
+    }
+    .pb-header { text-align: center; margin-bottom: 6px; }
+    .pb-title { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+    .pb-sub { font-size: 12px; color: #444; }
+    .pb-info { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; border-bottom: 1.5px solid #000; padding-bottom: 6px; }
+    .pb-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+    .pb-table th { font-size: 12px; font-weight: 700; border-top: 1.5px solid #000; border-bottom: 1px solid #000; padding: 5px 6px; }
+    .pb-table th.r { text-align: right; }
+    .pb-table th.c { text-align: center; }
+    .pb-table td { font-size: 13px; padding: 5px 6px; border-bottom: 0.5px solid #ccc; vertical-align: middle; }
+    .pb-table td.r { text-align: right; }
+    .pb-table td.c { text-align: center; }
+    .pb-table tr.total-row td { border-top: 1.5px solid #000; border-bottom: 1.5px solid #000; font-weight: 700; font-size: 14px; }
+    .pb-desc { font-size: 13px; }
+    .pb-desc .product { font-weight: 700; }
+    .pb-desc .detail { color: #333; margin-left: 4px; }
+    .pb-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px; padding-top: 8px; border-top: 0.5px dashed #999; }
+    .pb-sig { flex: 1; text-align: center; }
+    .pb-sig-line { border-bottom: 1px solid #000; margin: 0 20px 4px; height: 28px; }
+    .pb-sig-label { font-size: 11px; color: #555; }
+    .pb-note { font-size: 12px; color: #444; margin: 6px 0; font-style: italic; }
+    .pb-net { text-align: right; margin-top: 6px; }
+    .pb-net-label { font-size: 12px; color: #444; }
+    .pb-net-val { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+    .pb-bags { font-size: 13px; color: #444; margin-top: 4px; }
+  </style>
+
+  <div class="pb-header">
+    <div class="pb-title">ใบรับสินค้า</div>
+    <div class="pb-sub">ระบบขายมะนาว</div>
+  </div>
+
+  <div class="pb-info">
+    <div>ลูกค้า: <strong id="pb-customer">-</strong></div>
+    <div>วันที่: <strong id="pb-date">-</strong></div>
+  </div>
+
+  <table class="pb-table">
+    <thead>
+      <tr>
+        <th style="text-align:left;width:45%">รายการ / Description</th>
+        <th class="c" style="width:18%">จำนวน</th>
+        <th class="r" style="width:18%">หน่วยละ</th>
+        <th class="r" style="width:19%">จำนวนเงิน</th>
+      </tr>
+    </thead>
+    <tbody id="pb-rows"></tbody>
+    <tfoot>
+      <tr class="total-row">
+        <td>รวม</td>
+        <td class="c" id="pb-bags-total">-</td>
+        <td></td>
+        <td class="r" id="pb-net">฿0.00</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div id="pb-note-wrap" class="pb-note" style="display:none">หมายเหตุ: <span id="pb-note"></span></div>
+
+  <div class="pb-footer">
+    <div class="pb-sig">
+      <div class="pb-sig-line"></div>
+      <div class="pb-sig-label">ผู้ส่งของ / Receiver</div>
+    </div>
+    <div class="pb-sig">
+      <div class="pb-sig-line"></div>
+      <div class="pb-sig-label">ผู้รับเงิน / Collector</div>
+    </div>
+  </div>
+
+  <div style="text-align:center;font-size:10px;color:#888;margin-top:10px;border-top:0.5px dashed #ccc;padding-top:6px">
+    ขอบคุณที่ใช้บริการ / THANK YOU FOR YOUR KIND ATTENTION
+  </div>
+</div>
+
+
+<!-- Print Summary Bill -->
+<div id="print-summary" id="print-summary" class="print-bill-wrap">
+  <style>
+    @media print {
+      #print-summary { display: block !important; font-family: 'Sarabun', sans-serif; font-size: 13px; color: #000; padding: 10px 14px; }
+    }
+    .ps-header { text-align:center; margin-bottom:8px; }
+    .ps-title { font-size:18px; font-weight:700; }
+    .ps-period { font-size:12px; color:#444; margin-top:2px; }
+    .ps-customer { font-size:13px; margin-bottom:8px; }
+    .ps-table { width:100%; border-collapse:collapse; margin-bottom:4px; }
+    .ps-table th { font-size:12px; font-weight:700; padding:5px 6px; border-top:1.5px solid #000; border-bottom:1px solid #000; }
+    .ps-table th.r { text-align:right; }
+    .ps-table th.c { text-align:center; }
+    .ps-table td { font-size:13px; padding:5px 6px; border-bottom:0.5px solid #ddd; vertical-align:top; }
+    .ps-table td.r { text-align:right; }
+    .ps-table td.c { text-align:center; }
+    .ps-table tr.day-header td { background:#f0f0f0 !important; font-weight:700; font-size:13px; color:#c00; border-top:1px solid #999; border-bottom:0.5px solid #999; padding:4px 6px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .ps-table tr.day-total td { font-weight:700; border-top:1px solid #666; border-bottom:1.5px solid #000; background:#fff8dc !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .ps-table tr.day-total td.r { color:#c00; }
+    .ps-grand-total { display:flex; justify-content:space-between; align-items:center; border-top:2px solid #000; border-bottom:2px solid #000; padding:6px 6px; margin-top:4px; }
+    .ps-grand-label { font-size:14px; font-weight:700; }
+    .ps-grand-val { font-size:20px; font-weight:700; }
+    .ps-sig { display:flex; gap:40px; margin-top:14px; padding-top:8px; border-top:0.5px dashed #999; }
+    .ps-sig-item { flex:1; text-align:center; }
+    .ps-sig-line { border-bottom:1px solid #000; height:26px; margin:0 10px 4px; }
+    .ps-sig-lbl { font-size:11px; color:#555; }
+    .ps-ty { text-align:center; font-size:10px; color:#888; margin-top:8px; }
+  </style>
+
+  <!-- หัวบิล: ชื่อลูกค้า + วันที่ -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px;padding-bottom:6px;border-bottom:1.5px solid #000">
+    <div>
+      <div style="font-size:11px;color:#555">ชื่อลูกค้า</div>
+      <div style="font-size:16px;font-weight:700" id="ps-customer-line">-</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:11px;color:#555">ช่วงวันที่</div>
+      <div style="font-size:13px;font-weight:600" id="ps-period">-</div>
+    </div>
+  </div>
+
+  <!-- ยอดรวม -->
+  <div class="ps-grand-total" style="margin-bottom:12px">
+    <div>
+      <div class="ps-grand-label">ยอดรวมทั้งหมด</div>
+      <div id="ps-summary-line" style="font-size:12px;color:#555;margin-top:2px"></div>
+    </div>
+    <div class="ps-grand-val" id="ps-grand">฿0.00</div>
+  </div>
+
+  <table class="ps-table">
+    <thead>
+      <tr>
+        <th style="text-align:left;width:32%">สินค้า</th>
+        <th class="c" style="width:15%">ต่อลัง</th>
+        <th class="c" style="width:17%">จำนวนลัง</th>
+        <th class="r" style="width:17%">หน่วยละ</th>
+        <th class="r" style="width:19%">จำนวนเงิน</th>
+      </tr>
+    </thead>
+    <tbody id="ps-rows"></tbody>
+  </table>
+
+  <div class="ps-sig">
+    <div class="ps-sig-item"><div class="ps-sig-line"></div><div class="ps-sig-lbl">ผู้ส่งของ / Receiver</div></div>
+    <div class="ps-sig-item"><div class="ps-sig-line"></div><div class="ps-sig-lbl">ผู้รับเงิน / Collector</div></div>
+  </div>
+  <div class="ps-ty">ขอบคุณที่ใช้บริการ / THANK YOU FOR YOUR KIND ATTENTION</div>
+</div>
+
 </body>
 </html>
