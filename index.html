@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="th">
 <head>
 <meta charset="UTF-8" />
@@ -148,7 +147,6 @@ table.hist td.r { text-align: right; }
   </div>
 
   <!-- บิลขาย -->
-
   <div id="panel-sale" class="panel active">
     <div class="top-row">
       <div class="cust" style="position:relative">
@@ -159,57 +157,53 @@ table.hist td.r { text-align: right; }
       <div class="dt"><div class="flabel">วันที่</div><input class="finput" id="sale-date" type="date" /></div>
     </div>
 
-```
-<div class="tbl-wrap">
-  <table class="items">
-    <thead>
-      <tr>
-        <th>รายการสินค้า</th>
-        <th class="r">ต่อลัง</th>
-        <th class="r">จำนวนลัง</th>
-        <th class="r">จำนวนลูก</th>
-        <th class="r">ราคา/หน่วย</th>
-        <th class="r">รวมเงิน</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody id="items-body"></tbody>
-  </table>
-</div>
+    <div class="tbl-wrap">
+      <table class="items">
+        <thead>
+          <tr>
+            <th>รายการสินค้า</th>
+            <th class="r">ต่อลัง</th>
+            <th class="r">จำนวนลัง</th>
+            <th class="r">จำนวนลูก</th>
+            <th class="r">ราคา/หน่วย</th>
+            <th class="r">รวมเงิน</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="items-body"></tbody>
+      </table>
+    </div>
 
-<div class="item-cards" id="items-cards"></div>
+    <div class="item-cards" id="items-cards"></div>
 
-<button class="add-btn" onclick="addItem()">＋ เพิ่มรายการใหม่</button>
+    <button class="add-btn" onclick="addItem()">＋ เพิ่มรายการใหม่</button>
 
-<div class="footer-grid">
-  <div class="sum-box">
-    <div class="sum-label">ลังรวม</div>
-    <div class="sum-val"><span id="total-bags">0</span><span class="sum-unit">ลัง</span></div>
-  </div>
-  <div class="net-box">
-    <div class="net-label">ยอดชำระสุทธิ (NET TOTAL)</div>
-    <div class="net-val">฿<span id="net-total">0.00</span></div>
-    <div class="net-note">((ต่อลัง × จำนวนลัง) + จำนวนลูก) × ราคา/หน่วย</div>
-  </div>
-</div>
+    <div class="footer-grid">
+      <div class="sum-box">
+        <div class="sum-label">ลังรวม</div>
+        <div class="sum-val"><span id="total-bags">0</span><span class="sum-unit">ลัง</span></div>
+      </div>
+      <div class="net-box">
+        <div class="net-label">ยอดชำระสุทธิ (NET TOTAL)</div>
+        <div class="net-val">฿<span id="net-total">0.00</span></div>
+        <div class="net-note">((ต่อลัง × จำนวนลัง) + จำนวนลูก) × ราคา/หน่วย</div>
+      </div>
+    </div>
 
-<div class="note-box">
-  <div class="flabel">หมายเหตุ</div>
-  <textarea id="note" placeholder="หมายเหตุเพิ่มเติม..."></textarea>
-</div>
+    <div class="note-box">
+      <div class="flabel">หมายเหตุ</div>
+      <textarea id="note" placeholder="หมายเหตุเพิ่มเติม..."></textarea>
+    </div>
 
-<div class="sig-row">
-  <div style="flex:1"><div class="sig-line"></div><div class="sig-label">ผู้ส่งของ / Receiver</div></div>
-  <div style="flex:1"><div class="sig-line"></div><div class="sig-label">ผู้รับเงิน / Collector</div></div>
-</div>
-<div class="ty">ขอบคุณที่ใช้บริการ / THANK YOU FOR YOUR KIND ATTENTION</div>
-<div class="save-row"><button class="btn-save" onclick="saveToSheet()">บันทึก</button></div>
-```
-
+    <div class="sig-row">
+      <div style="flex:1"><div class="sig-line"></div><div class="sig-label">ผู้ส่งของ / Receiver</div></div>
+      <div style="flex:1"><div class="sig-line"></div><div class="sig-label">ผู้รับเงิน / Collector</div></div>
+    </div>
+    <div class="ty">ขอบคุณที่ใช้บริการ / THANK YOU FOR YOUR KIND ATTENTION</div>
+    <div class="save-row"><button class="btn-save" onclick="saveToSheet()">บันทึก</button></div>
   </div>
 
   <!-- ประวัติ -->
-
   <div id="panel-history" class="panel">
     <div class="stat-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
       <div class="stat-card"><div class="stat-lbl">ยอดขายรวม</div><div class="stat-v green" id="s-total">฿0.00</div></div>
@@ -242,7 +236,6 @@ table.hist td.r { text-align: right; }
   </div>
 
   <!-- จัดการลูกค้า -->
-
   <div id="panel-customers" class="panel">
     <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end">
       <div style="flex:1;min-width:200px">
@@ -262,7 +255,6 @@ table.hist td.r { text-align: right; }
   </div>
 
   <!-- ตั้งค่า -->
-
   <div id="panel-settings" class="panel">
     <div class="set-card">
       <div class="set-title">
@@ -272,36 +264,33 @@ table.hist td.r { text-align: right; }
           <span id="conn-text">ยังไม่ได้ทดสอบ</span>
         </span>
       </div>
-      <div style="margin-bottom:12px"><div class="flabel">Google Sheet ID</div><input class="finput" id="s-sid" type="text" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" /></div>
-      <div class="set-row">
-        <div><div class="flabel">ชื่อ Tab / Sheet</div><input class="finput" id="s-tab" type="text" placeholder="Sales" /></div>
-        <div><div class="flabel">API Key</div><input class="finput" id="s-key" type="password" placeholder="AIza..." /></div>
+      <div style="margin-bottom:12px">
+        <div class="flabel">Apps Script Web App URL</div>
+        <input class="finput" id="s-url" type="text" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbynAmnbsFeU7ls9Qmt9zpR7A3hNXKBZEYBjqUlDOxHjCLZaTqDeyic1z8lqb7VLkDYhWQ/exec" />
+        <div style="font-size:11px;color:#6b7280;margin-top:4px">Extensions → Apps Script → Deploy → New deployment → Web app</div>
       </div>
       <button class="btn-test" onclick="testConn()">ทดสอบการเชื่อมต่อ</button>
     </div>
 
-```
-<div class="set-card">
-  <div class="set-title">รูปแบบคอลัมน์ใน Sheet</div>
-  <div style="font-size:12px;color:#6b7280;margin-bottom:10px">ข้อมูลจะบันทึกในลำดับนี้</div>
-  <div style="overflow-x:auto">
-    <table style="width:100%;border-collapse:collapse;font-size:12px">
-      <thead><tr id="col-head"></tr></thead>
-      <tbody><tr id="col-body"></tr></tbody>
-    </table>
-  </div>
-</div>
+    <div class="set-card">
+      <div class="set-title">รูปแบบคอลัมน์ใน Sheet</div>
+      <div style="font-size:12px;color:#6b7280;margin-bottom:10px">ข้อมูลจะบันทึกในลำดับนี้</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr id="col-head"></tr></thead>
+          <tbody><tr id="col-body"></tr></tbody>
+        </table>
+      </div>
+    </div>
 
-<div class="hint">
-  <strong>วิธีเชื่อมต่อ Google Sheets:</strong><br>
-  1. เปิด Google Cloud Console → เปิดใช้ Sheets API<br>
-  2. สร้าง API Key → Credentials → Create Credentials → API key<br>
-  3. เปิด Google Sheet → แชร์เป็น <strong>Anyone with link (Editor)</strong><br>
-  4. คัดลอก Sheet ID จาก URL ระหว่าง <strong>/d/</strong> กับ <strong>/edit</strong><br>
-  5. กรอกข้อมูลแล้วกด ทดสอบการเชื่อมต่อ
-</div>
-```
-
+    <div class="hint">
+      <strong>วิธีเชื่อมต่อ Google Sheets:</strong><br>
+      1. เปิด Google Cloud Console → เปิดใช้ Sheets API<br>
+      2. สร้าง API Key → Credentials → Create Credentials → API key<br>
+      3. เปิด Google Sheet → แชร์เป็น <strong>Anyone with link (Editor)</strong><br>
+      4. คัดลอก Sheet ID จาก URL ระหว่าง <strong>/d/</strong> กับ <strong>/edit</strong><br>
+      5. กรอกข้อมูลแล้วกด ทดสอบการเชื่อมต่อ
+    </div>
   </div>
 </div>
 
@@ -410,17 +399,21 @@ function showToast(msg, color) {
   setTimeout(() => t.style.display = 'none', 3000);
 }
 function getSettings() {
-  return { sid: document.getElementById('s-sid').value.trim(), tab: document.getElementById('s-tab').value.trim()||'Sales', key: document.getElementById('s-key').value.trim() };
+  return { url: document.getElementById('s-url').value.trim() };
 }
 async function testConn() {
-  const {sid,tab,key} = getSettings();
-  if (!sid||!key) { showToast('กรุณากรอก Sheet ID และ API Key','#e24b4a'); return; }
+  const {url} = getSettings();
+  if (!url) { showToast('กรุณากรอก Apps Script URL','#e24b4a'); return; }
   setConn('กำลังทดสอบ...','#f5b731');
   try {
-    const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${encodeURIComponent(tab)}!A1:A1?key=${key}`);
-    if (res.ok) { setConn('เชื่อมต่อสำเร็จ','#2d9e5f'); showToast('เชื่อมต่อสำเร็จ!'); }
-    else { setConn('เชื่อมต่อไม่ได้','#e24b4a'); showToast('ตรวจสอบ Sheet ID / API Key','#e24b4a'); }
-  } catch(e) { setConn('ข้อผิดพลาด','#e24b4a'); showToast(e.message,'#e24b4a'); }
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.values !== undefined || Array.isArray(data.values)) {
+      setConn('เชื่อมต่อสำเร็จ','#2d9e5f'); showToast('เชื่อมต่อสำเร็จ!');
+    } else {
+      setConn('เชื่อมต่อสำเร็จ','#2d9e5f'); showToast('เชื่อมต่อสำเร็จ!');
+    }
+  } catch(e) { setConn('เชื่อมต่อไม่ได้','#e24b4a'); showToast('ตรวจสอบ URL อีกครั้ง','#e24b4a'); }
 }
 function setConn(msg,color) {
   document.getElementById('conn-badge').style.color = color;
@@ -428,41 +421,43 @@ function setConn(msg,color) {
   document.getElementById('conn-text').textContent = msg;
 }
 async function saveToSheet() {
-  const {sid,tab,key} = getSettings();
+  const {url} = getSettings();
   const customer = document.getElementById('customer').value.trim()||'-';
   const date     = document.getElementById('sale-date').value||today();
   const note     = document.getElementById('note').value.trim();
-  if (!sid||!key) { showToast('กรุณาตั้งค่า Google Sheets ก่อน','#e24b4a'); return; }
+  if (!url) { showToast('กรุณาตั้งค่า Apps Script URL ก่อน','#e24b4a'); return; }
   if (!items.length) { showToast('ไม่มีรายการสินค้า','#e24b4a'); return; }
   const rows = items.map(item => {
     const b=parseFloat(item.perBag)||0, n=parseFloat(item.numBags)||0, f=parseFloat(item.numFruits)||0, p=parseFloat(item.price)||0;
-    return [date, customer, item.name, b, n, f, p, (b*n*p).toFixed(2), note];
+    return [date, customer, item.name, b, n, f, p, (((b*n)+f)*p).toFixed(2), note];
   });
   try {
-    const res = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${encodeURIComponent(tab)}:append?valueInputOption=USER_ENTERED&key=${key}`,
-      { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({values:rows}) }
-    );
-    if (res.ok) showToast('บันทึก '+rows.length+' รายการสำเร็จ!');
-    else { const e=await res.json(); showToast('บันทึกไม่ได้: '+(e.error?.message||''),'#e24b4a'); }
-  } catch(e) { showToast(e.message,'#e24b4a'); }
+    const res = await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({rows})
+    });
+    const data = await res.json();
+    if (data.status==='ok') showToast('บันทึก '+rows.length+' รายการสำเร็จ!');
+    else showToast('บันทึกไม่ได้: '+(data.message||''),'#e24b4a');
+  } catch(e) { showToast('บันทึกไม่ได้: '+e.message,'#e24b4a'); }
 }
 async function loadHistory() {
-  const {sid,tab,key} = getSettings();
-  if (!sid||!key) { showToast('กรุณาตั้งค่า Google Sheets ก่อน','#e24b4a'); return; }
+  const {url} = getSettings();
+  if (!url) { showToast('กรุณาตั้งค่า Apps Script URL ก่อน','#e24b4a'); return; }
   const content = document.getElementById('hist-content');
   content.innerHTML = '<div class="empty">กำลังโหลด...</div>';
   document.getElementById('product-summary').style.display = 'none';
   document.getElementById('daily-section').style.display = 'none';
   document.getElementById('detail-label').style.display = 'none';
   try {
-    const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${encodeURIComponent(tab)}?key=${key}`);
+    const res = await fetch(url);
     if (!res.ok) { content.innerHTML='<div class="empty">⚠️ ดึงข้อมูลไม่ได้</div>'; return; }
     const data = await res.json();
     const fdFrom = document.getElementById('f-date-from').value;
     const fdTo   = document.getElementById('f-date-to').value;
     const fn     = document.getElementById('f-name').value.toLowerCase();
-    let rows = (data.values||[]).filter(r=>r.length>=8);
+    let rows = (data.values||[]).map(r=>r.map(String)).filter(r=>r.length>=8);
     if (fdFrom) rows = rows.filter(r => (r[0]||'') >= fdFrom);
     if (fdTo)   rows = rows.filter(r => (r[0]||'') <= fdTo);
     if (fn)     rows = rows.filter(r=>(r[1]||'').toLowerCase().includes(fn)||(r[2]||'').toLowerCase().includes(fn));
@@ -659,6 +654,5 @@ document.addEventListener('click', e => {
 
 renderCustomers();
 </script>
-
 </body>
 </html>
