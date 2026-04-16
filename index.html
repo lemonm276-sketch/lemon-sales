@@ -328,7 +328,7 @@ table.hist td.r { text-align: right; }
       </div>
       <div style="margin-bottom:12px">
         <div class="flabel">Apps Script Web App URL</div>
-        <input class="finput" id="s-url" type="text" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbynAmnbsFeU7ls9Qmt9zpR7A3hNXKBZEYBjqUlDOxHjCLZaTqDeyic1z8lqb7VLkDYhWQ/exec" />
+        <input class="finput" id="s-url" type="text" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbwg10Y1ESSWpIj2J5X3S29NWGTVoKaczhrGSQRYluKsutewvwMcGimbjV7k6fIJmPur2A/exec" />
         <div style="font-size:11px;color:#6b7280;margin-top:4px">Extensions → Apps Script → Deploy → New deployment → Web app</div>
       </div>
       <button class="btn-test" onclick="testConn()">ทดสอบการเชื่อมต่อ</button>
@@ -547,7 +547,17 @@ async function confirmSave() {
       body: JSON.stringify({rows})
     });
     const data = await res.json();
-    if (data.status==='ok') showToast('บันทึก '+rows.length+' รายการสำเร็จ!');
+    if (data.status==='ok') {
+      showToast('บันทึก '+rows.length+' รายการสำเร็จ!');
+      // clear form
+      document.getElementById('customer').value = '';
+      document.getElementById('note').value = '';
+      document.getElementById('sale-date').value = today();
+      // reset items to defaults
+      items = [];
+      _id = 0;
+      DEFAULTS.forEach(d => addItem(d.name, d.perBag));
+    }
     else showToast('บันทึกไม่ได้: '+(data.message||''),'#e24b4a');
   } catch(e) { showToast('บันทึกไม่ได้: '+e.message,'#e24b4a'); }
 }
