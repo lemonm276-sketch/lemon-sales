@@ -227,35 +227,53 @@ table.hist td.r { text-align: right; }
 
   <!-- ประวัติ -->
   <div id="panel-history" class="panel">
-    <div class="stat-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
-      <div class="stat-card"><div class="stat-lbl">ยอดขายรวม</div><div class="stat-v green" id="s-total">0.00 บาท</div></div>
-      <div class="stat-card"><div class="stat-lbl">จำนวนรายการ</div><div class="stat-v" id="s-rows">0 รายการ</div></div>
-      <div class="stat-card"><div class="stat-lbl">ลังรวม</div><div class="stat-v" id="s-bags">0 ลัง</div></div>
-    </div>
-    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;margin-bottom:16px">
-      <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:10px">กรองข้อมูลตามช่วงวันที่</div>
+
+    <!-- Filter bar -->
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:16px">
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
-        <div><div class="flabel">จากวันที่</div><input type="date" id="f-date-from" class="finput" style="width:148px" /></div>
-        <div><div class="flabel">ถึงวันที่</div><input type="date" id="f-date-to" class="finput" style="width:148px" /></div>
-        <div style="flex:1;min-width:140px;position:relative">
+        <div><div class="flabel">จากวันที่</div><input type="date" id="f-date-from" class="finput" style="width:145px" /></div>
+        <div><div class="flabel">ถึงวันที่</div><input type="date" id="f-date-to" class="finput" style="width:145px" /></div>
+        <div style="flex:1;min-width:130px;position:relative">
           <div class="flabel">ลูกค้า</div>
-          <input type="text" id="f-name" class="finput" placeholder="พิมพ์ชื่อ..." autocomplete="off" oninput="showDropdown('f-name','f-name-dd')" onfocus="showDropdown('f-name','f-name-dd')" />
+          <input type="text" id="f-name" class="finput" placeholder="ทั้งหมด" autocomplete="off" oninput="showDropdown('f-name','f-name-dd')" onfocus="showDropdown('f-name','f-name-dd')" />
           <div id="f-name-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #d1d5db;border-radius:0 0 8px 8px;z-index:200;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1)"></div>
         </div>
-        <button class="btn-load" onclick="loadHistory()">โหลด / รีเฟรช</button>
-        <button class="btn-load" style="background:#374151" onclick="printSummary()">🖨 พิมพ์สรุป</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-load" onclick="loadHistory()">โหลด</button>
+          <button class="btn-load" style="background:#374151" onclick="printSummary()">🖨 พิมพ์สรุป</button>
+        </div>
       </div>
     </div>
-    <div id="product-summary" style="display:none;margin-bottom:16px">
-      <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px">สรุปยอดแยกตามสินค้า</div>
+
+    <!-- Summary cards -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+      <div class="stat-card" style="border-left:3px solid #2d9e5f">
+        <div class="stat-lbl">ยอดขายรวม</div>
+        <div class="stat-v green" id="s-total" style="font-size:18px">-</div>
+      </div>
+      <div class="stat-card" style="border-left:3px solid #4f86c6">
+        <div class="stat-lbl">ลังรวม</div>
+        <div class="stat-v" id="s-bags" style="font-size:18px">-</div>
+      </div>
+      <div class="stat-card" style="border-left:3px solid #f5b731">
+        <div class="stat-lbl">จำนวนรายการ</div>
+        <div class="stat-v" id="s-rows" style="font-size:18px">-</div>
+      </div>
+    </div>
+
+    <!-- Report sections -->
+    <div id="product-summary" style="display:none;margin-bottom:20px">
+      <div style="font-size:12px;font-weight:700;color:#6b7280;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e5e7eb">สรุปตามสินค้า</div>
       <div id="product-summary-content" style="overflow-x:auto"></div>
     </div>
-    <div id="daily-section" style="display:none;margin-bottom:16px">
-      <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px">ยอดขายรายวัน</div>
+
+    <div id="daily-section" style="display:none;margin-bottom:20px">
+      <div style="font-size:12px;font-weight:700;color:#6b7280;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e5e7eb">ยอดขายรายวัน</div>
       <div id="daily-content" style="overflow-x:auto"></div>
     </div>
-    <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px;display:none" id="detail-label">รายละเอียดทุกรายการ</div>
-    <div id="hist-content" class="empty">📋 กด "โหลด / รีเฟรช" เพื่อดึงข้อมูล</div>
+
+    <div id="detail-label" style="display:none;font-size:12px;font-weight:700;color:#6b7280;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid #e5e7eb">รายละเอียดทุกรายการ</div>
+    <div id="hist-content" class="empty">เลือกวันที่แล้วกด "โหลด"</div>
   </div>
 
   <!-- จัดการลูกค้า -->
@@ -344,6 +362,8 @@ const fmtM = n => Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:2,m
 const today = () => new Date().toISOString().split('T')[0];
 
 document.getElementById('sale-date').value = today();
+document.getElementById('f-date-from').value = today();
+document.getElementById('f-date-to').value = today();
 
 // column schema
 const colLetters = ['A','B','C','D','E','F','G','H','I'];
@@ -779,7 +799,7 @@ async function pushCustomerToSheet() {
     const res = await fetch(url, {
       method:'POST',
       headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({ action:'syncCustomers', rows })
+      body: JSON.stringify({ action:'syncCustomers', tab:'Customers', rows })
     });
     const data = await res.json();
     if (data.status==='ok') showToast('ซิงค์ลูกค้าขึ้น Sheet แล้ว ✓');
@@ -796,7 +816,7 @@ async function syncCustomersToSheet() {
     const res = await fetch(url, {
       method:'POST',
       headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({ action:'syncCustomers', rows })
+      body: JSON.stringify({ action:'syncCustomers', tab:'Customers', rows })
     });
     const data = await res.json();
     if (data.status==='ok') { showToast('บันทึกลูกค้าขึ้น Sheet สำเร็จ!'); setSyncStatus(''); }
@@ -890,14 +910,16 @@ function openPrint() {
     let desc = `<span class="product">${item.name}</span>`;
     if (b > 0) desc += ` <span class="detail">${fmt(b)}</span>`;
 
-    // quantity cell: "5 ลัง  200 ลูก" or just "5 ลัง"
-    let qty = '';
-    if (n > 0) qty += `${fmt(n)} ลัง`;
-    if (f > 0) qty += `${n > 0 ? '&nbsp;&nbsp;' : ''}${fmt(f)} ลูก`;
+    // ลัง col | ลูก col แยก
+    // ถ้ามีทั้งลังและลูก: แสดงบรรทัดเดียวกัน
+    // ถ้ามีลูกอย่างเดียว: ช่องลังว่าง, ลูกอยู่ตำแหน่งลูก
+    const langCell  = n > 0 ? fmt(n) + ' ลัง' : '';
+    const luukCell  = f > 0 ? fmt(f) + ' ลูก' : '';
 
     rowsHtml += `<tr>
       <td class="pb-desc">${desc}</td>
-      <td class="c">${qty}</td>
+      <td class="r">${langCell}</td>
+      <td class="r">${luukCell}</td>
       <td class="r">${fmtM(p)}</td>
       <td class="r">${fmtM(amt)}</td>
     </tr>`;
@@ -992,7 +1014,8 @@ function printSummary() {
     // day total row
     rowsHtml += `<tr class="day-total">
       <td>รวม</td>
-      <td class="c">${fmt(dayBags)} ลัง</td>
+      <td class="c"></td>
+      <td class="r">${fmt(dayBags)} ลัง</td>
       <td></td>
       <td></td>
       <td class="r">${fmtM(dayTotal)} บาท</td>
@@ -1096,9 +1119,10 @@ function printSummary() {
   <table class="pb-table">
     <thead>
       <tr>
-        <th style="text-align:left;width:45%">รายการ / Description</th>
-        <th class="c" style="width:18%">จำนวน</th>
-        <th class="r" style="width:18%">หน่วยละ</th>
+        <th style="text-align:left;width:38%">รายการ / Description</th>
+        <th class="r" style="width:13%">ลัง</th>
+        <th class="r" style="width:13%">ลูก</th>
+        <th class="r" style="width:17%">หน่วยละ</th>
         <th class="r" style="width:19%">จำนวนเงิน</th>
       </tr>
     </thead>
@@ -1106,7 +1130,8 @@ function printSummary() {
     <tfoot>
       <tr class="total-row">
         <td>รวม</td>
-        <td class="c" id="pb-bags-total">-</td>
+        <td class="r" id="pb-bags-total">-</td>
+        <td></td>
         <td></td>
         <td class="r" id="pb-net">0.00 บาท</td>
       </tr>
@@ -1186,10 +1211,11 @@ function printSummary() {
   <table class="ps-table">
     <thead>
       <tr>
-        <th style="text-align:left;width:32%">สินค้า</th>
-        <th class="c" style="width:15%">ต่อลัง</th>
-        <th class="c" style="width:17%">จำนวนลัง</th>
-        <th class="r" style="width:17%">หน่วยละ</th>
+        <th style="text-align:left;width:28%">สินค้า</th>
+        <th class="c" style="width:12%">ต่อลัง</th>
+        <th class="r" style="width:13%">ลัง</th>
+        <th class="r" style="width:13%">ลูก</th>
+        <th class="r" style="width:15%">หน่วยละ</th>
         <th class="r" style="width:19%">จำนวนเงิน</th>
       </tr>
     </thead>
