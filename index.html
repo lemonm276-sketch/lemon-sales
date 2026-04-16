@@ -898,19 +898,14 @@ function showDropdown(inputId, ddId) {
   });
 
   // ถ้าพิมพ์ชื่อแล้วไม่มีในรายการ → แสดงปุ่ม "เพิ่มลูกค้าใหม่"
-  if (q && !filtered.length) {
-    h += `<div onclick="goAddCustomer('${q.replace(/'/g,"\\'")}')"
-      style="padding:9px 12px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;color:#2d9e5f;font-weight:600;border-top:0.5px solid #e5e7eb"
-      onmouseover="this.style.background='#f0faf5'" onmouseout="this.style.background=''">
-      <span style="font-size:16px">+</span>
+  // ปุ่มเพิ่มลูกค้าใหม่ — ใช้ onmousedown เพื่อให้ทำงานก่อน click-outside ปิด dropdown
+  if (q && !filtered.find(c => c.name.toLowerCase() === q)) {
+    const safeQ = q.replace(/'/g,"\\'");
+    h += `<div onmousedown="event.preventDefault();goAddCustomer('${safeQ}')"
+      style="padding:10px 12px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;color:#2d9e5f;font-weight:600;border-top:1px solid #e5e7eb;background:#f0faf5"
+      onmouseover="this.style.background='#dcf5e8'" onmouseout="this.style.background='#f0faf5'">
+      <span style="font-size:18px;line-height:1">+</span>
       <span>เพิ่ม "${q}" เป็นลูกค้าใหม่</span>
-    </div>`;
-  } else if (q && filtered.length > 0 && !filtered.find(c => c.name.toLowerCase() === q)) {
-    // พิมพ์แล้วมีผลบางส่วน แต่ไม่มีชื่อตรงทั้งหมด → แสดงปุ่มเพิ่มด้วย
-    h += `<div onclick="goAddCustomer('${q.replace(/'/g,"\\'")}')"
-      style="padding:8px 12px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px;color:#4f86c6;border-top:0.5px solid #e5e7eb"
-      onmouseover="this.style.background='#f0faf5'" onmouseout="this.style.background=''">
-      <span>+</span><span>ไม่พบ? เพิ่ม "${q}" เป็นลูกค้าใหม่</span>
     </div>`;
   }
 
