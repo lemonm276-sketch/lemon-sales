@@ -605,7 +605,7 @@ async function loadHistory() {
     }
     let rows = allRows.filter(r => r.length >= 7 && (r[0]||'').trim() !== '');
     // เก็บ _idx (row index ใน sheet จริง = index + 2 เพราะมี header)
-    rows = rows.map((r, i) => { const nr = [...r]; nr._idx = i; nr._sheetRow = i + 2; return nr; });
+    rows = rows.map((r, i) => { const nr = Array.from(r); nr._idx = i; nr._sheetRow = i + 2; return nr; });
     _summaryData = rows;
     // normalize วันที่ก่อนเปรียบเทียบ (รองรับ ISO string และ yyyy-mm-dd)
     const normDate = v => String(v||'').substring(0,10);
@@ -1351,7 +1351,7 @@ async function saveEditHist() {
   try {
     const res = await fetch(url, {
       method:'POST', headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({ action:'updateRow', sheetRow, row: newRow })
+      body: JSON.stringify({ action:'updateRow', sheetRow, row: Array.from(newRow) })
     });
     const data = await res.json();
     if (data.status==='ok') {
