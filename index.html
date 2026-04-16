@@ -207,7 +207,7 @@ table.hist td.r { text-align: right; }
       </div>
       <div class="net-box">
         <div class="net-label">ยอดชำระสุทธิ (NET TOTAL)</div>
-        <div class="net-val">฿<span id="net-total">0.00</span></div>
+        <div class="net-val"><span id="net-total">0.00</span> บาท</div>
         <div class="net-note">((ต่อลัง × จำนวนลัง) + จำนวนลูก) × ราคา/หน่วย</div>
       </div>
     </div>
@@ -228,7 +228,7 @@ table.hist td.r { text-align: right; }
   <!-- ประวัติ -->
   <div id="panel-history" class="panel">
     <div class="stat-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
-      <div class="stat-card"><div class="stat-lbl">ยอดขายรวม</div><div class="stat-v green" id="s-total">฿0.00</div></div>
+      <div class="stat-card"><div class="stat-lbl">ยอดขายรวม</div><div class="stat-v green" id="s-total">0.00 บาท</div></div>
       <div class="stat-card"><div class="stat-lbl">จำนวนรายการ</div><div class="stat-v" id="s-rows">0 รายการ</div></div>
       <div class="stat-card"><div class="stat-lbl">ลังรวม</div><div class="stat-v" id="s-bags">0 ลัง</div></div>
     </div>
@@ -291,8 +291,7 @@ table.hist td.r { text-align: right; }
     <!-- Sync bar -->
     <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
       <input class="finput" id="cust-search" type="text" placeholder="🔍 ค้นหาลูกค้า..." oninput="renderCustomers()" style="flex:1;min-width:160px" />
-      <button class="btn-load" style="background:#4f86c6" onclick="syncCustomersFromSheet()">↓ โหลดจาก Sheet</button>
-      <button class="btn-load" style="background:#2d9e5f" onclick="syncCustomersToSheet()">↑ บันทึกขึ้น Sheet</button>
+      <button class="btn-load" style="background:#4f86c6" onclick="syncCustomersFromSheet()">🔍 ค้นหา</button>
     </div>
     <div id="cust-sync-status" style="font-size:12px;color:#6b7280;margin-bottom:10px;display:none"></div>
 
@@ -480,19 +479,24 @@ function saveToSheet() {
 
   let totalBags = 0, net = 0;
   let rowsHtml = '';
-  items.forEach(item => {
+  const validItems = items.filter(item => {
+    const b=parseFloat(item.perBag)||0, n=parseFloat(item.numBags)||0, f=parseFloat(item.numFruits)||0, p=parseFloat(item.price)||0;
+    return ((b*n)+f)*p > 0;
+  });
+  if (!validItems.length) { showToast('ไม่มีรายการที่มียอดเงิน — กรอกจำนวนลังและราคาก่อน','#e24b4a'); return; }
+  validItems.forEach(item => {
     const b=parseFloat(item.perBag)||0, n=parseFloat(item.numBags)||0, f=parseFloat(item.numFruits)||0, p=parseFloat(item.price)||0;
     const amt = ((b*n)+f)*p;
     totalBags += n; net += amt;
     rowsHtml += `<div class="modal-row">
       <div><div class="rname">${item.name||'-'}</div>
-      <div class="rdetail">(${fmt(b)}×${fmt(n)})+${fmt(f)} ลูก × ฿${fmt(p)}</div></div>
-      <div class="ramt">฿${fmtM(amt)}</div>
+      <div class="rdetail">(${fmt(b)}×${fmt(n)})+${fmt(f)} ลูก × ${fmt(p)} บาท</div></div>
+      <div class="ramt">${fmtM(amt)} บาท</div>
     </div>`;
   });
   document.getElementById('m-rows').innerHTML = rowsHtml;
   document.getElementById('m-bags').textContent = fmt(totalBags)+' ลัง';
-  document.getElementById('m-total').textContent = '฿'+fmtM(net);
+  document.getElementById('m-total').textContent = fmtM(net)+' บาท';
   document.getElementById('confirm-modal').classList.add('open');
 }
 
@@ -506,10 +510,16 @@ async function confirmSave() {
   const customer = document.getElementById('customer').value.trim()||'-';
   const date     = document.getElementById('sale-date').value||today();
   const note     = document.getElementById('note').value.trim();
-  const rows = items.map(item => {
-    const b=parseFloat(item.perBag)||0, n=parseFloat(item.numBags)||0, f=parseFloat(item.numFruits)||0, p=parseFloat(item.price)||0;
-    return [date, customer, item.name, b, n, f, p, (((b*n)+f)*p).toFixed(2), note];
-  });
+  const rows = items
+    .filter(item => {
+      const b=parseFloat(item.perBag)||0, n=parseFloat(item.numBags)||0, f=parseFloat(item.numFruits)||0, p=parseFloat(item.price)||0;
+      return ((b*n)+f)*p > 0;
+    })
+    .map(item => {
+      const b=parseFloat(item.perBag)||0, n=parseFloat(item.numBags)||0, f=parseFloat(item.numFruits)||0, p=parseFloat(item.price)||0;
+      return [date, customer, item.name, b, n, f, p, (((b*n)+f)*p).toFixed(2), note];
+    });
+  if (!rows.length) { showToast('ไม่มีรายการที่มียอดเงิน','#e24b4a'); return; }
   try {
     const res = await fetch(url, {
       method:'POST',
@@ -544,7 +554,7 @@ async function loadHistory() {
 
     const totalAmt  = rows.reduce((s,r)=>s+(parseFloat(r[7])||0),0);
     const totalBags = rows.reduce((s,r)=>s+(parseFloat(r[4])||0),0);
-    document.getElementById('s-total').textContent = '฿'+fmtM(totalAmt);
+    document.getElementById('s-total').textContent = fmtM(totalAmt)+' บาท';
     document.getElementById('s-rows').textContent  = fmt(rows.length)+' รายการ';
     document.getElementById('s-bags').textContent  = fmt(totalBags)+' ลัง';
 
@@ -570,7 +580,7 @@ async function loadHistory() {
         <td class="r">${fmt(d.bags)}</td>
         <td class="r">${fmt(d.fruits)}</td>
         <td class="r">${fmt(d.count)}</td>
-        <td class="r" style="font-weight:700;color:#2d9e5f">฿${fmtM(d.amt)}</td>
+        <td class="r" style="font-weight:700;color:#2d9e5f">${fmtM(d.amt)} บาท</td>
       </tr>`;
     });
     // grand total row
@@ -579,7 +589,7 @@ async function loadHistory() {
       <td class="r" style="font-weight:700">${fmt(totalBags)}</td>
       <td class="r" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+(parseFloat(r[5])||0),0))}</td>
       <td class="r" style="font-weight:700">${fmt(rows.length)}</td>
-      <td class="r" style="font-weight:700;color:#2d9e5f">฿${fmtM(totalAmt)}</td>
+      <td class="r" style="font-weight:700;color:#2d9e5f">${fmtM(totalAmt)} บาท</td>
     </tr>`;
     phtml += '</tbody></table>';
     document.getElementById('product-summary-content').innerHTML = phtml;
@@ -605,7 +615,7 @@ async function loadHistory() {
         <td class="r">${fmt(d.bags)}</td>
         <td class="r">${fmt(d.fruits)}</td>
         <td class="r">${fmt(d.count)}</td>
-        <td class="r" style="font-weight:700;color:#2d9e5f">฿${fmtM(d.amt)}</td>
+        <td class="r" style="font-weight:700;color:#2d9e5f">${fmtM(d.amt)} บาท</td>
       </tr>`;
     });
     dhtml += `<tr style="border-top:2px solid #e5e7eb;background:#f9fafb">
@@ -613,7 +623,7 @@ async function loadHistory() {
       <td class="r" style="font-weight:700">${fmt(totalBags)}</td>
       <td class="r" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+(parseFloat(r[5])||0),0))}</td>
       <td class="r" style="font-weight:700">${fmt(rows.length)}</td>
-      <td class="r" style="font-weight:700;color:#2d9e5f">฿${fmtM(totalAmt)}</td>
+      <td class="r" style="font-weight:700;color:#2d9e5f">${fmtM(totalAmt)} บาท</td>
     </tr>`;
     dhtml += '</tbody></table>';
     document.getElementById('daily-content').innerHTML = dhtml;
@@ -632,7 +642,7 @@ async function loadHistory() {
         <td><span class="badge">${r[2]||''}</span></td>
         <td class="r">${fmt(r[3])}</td><td class="r">${fmt(r[4])}</td><td class="r">${fmt(r[5])}</td>
         <td class="r">${fmt(r[6])}</td>
-        <td class="r" style="font-weight:700;color:#2d9e5f">฿${fmtM(r[7])}</td>
+        <td class="r" style="font-weight:700;color:#2d9e5f">${fmtM(r[7])} บาท</td>
         <td style="font-size:12px;color:#6b7280">${r[8]||''}</td>
       </tr>`;
     });
@@ -677,6 +687,8 @@ function submitCustomer() {
   }
   saveCustomers();
   renderCustomers();
+  // auto sync to sheet
+  pushCustomerToSheet();
 }
 
 function editCustomer(id) {
@@ -713,6 +725,7 @@ function deleteCustomer(id) {
   saveCustomers();
   renderCustomers();
   showToast('ลบเรียบร้อย');
+  pushCustomerToSheet();
 }
 
 function renderCustomers() {
@@ -725,7 +738,7 @@ function renderCustomers() {
     (c.note||'').toLowerCase().includes(q)
   );
   if (!filtered.length) {
-    list.innerHTML = '<div class="empty" style="padding:24px">ยังไม่มีลูกค้า — เพิ่มด้านบนหรือโหลดจาก Sheet</div>';
+    list.innerHTML = '<div class="empty" style="padding:24px">ยังไม่มีลูกค้า — เพิ่มด้านบน หรือกด "ค้นหา" เพื่อโหลดจาก Sheet</div>';
     return;
   }
   let h = '<table style="width:100%;border-collapse:collapse;font-size:13px">'
@@ -755,6 +768,22 @@ function renderCustomers() {
   });
   h += '</tbody></table>';
   list.innerHTML = h;
+}
+
+// silent auto-sync after add/edit/delete
+async function pushCustomerToSheet() {
+  const {url} = getSettings();
+  if (!url || !customers.length) return;
+  const rows = customers.map(c => [c.id, c.name, c.phone||'', c.addr||'', c.note||'']);
+  try {
+    const res = await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ action:'syncCustomers', rows })
+    });
+    const data = await res.json();
+    if (data.status==='ok') showToast('ซิงค์ลูกค้าขึ้น Sheet แล้ว ✓');
+  } catch(e) { /* silent fail */ }
 }
 
 async function syncCustomersToSheet() {
@@ -876,7 +905,7 @@ function openPrint() {
 
   document.getElementById('pb-rows').innerHTML = rowsHtml;
   document.getElementById('pb-bags-total').textContent = fmt(totalBags) + ' ลัง';
-  document.getElementById('pb-net').textContent = '฿' + fmtM(net);
+  document.getElementById('pb-net').textContent = fmtM(net) + ' บาท';
 
   if (note) {
     document.getElementById('pb-note').textContent = note;
@@ -966,14 +995,14 @@ function printSummary() {
       <td class="c">${fmt(dayBags)} ลัง</td>
       <td></td>
       <td></td>
-      <td class="r">฿${fmtM(dayTotal)}</td>
+      <td class="r">${fmtM(dayTotal)} บาท</td>
     </tr>`;
 
     grandTotal += dayTotal;
   });
 
   document.getElementById('ps-rows').innerHTML = rowsHtml;
-  document.getElementById('ps-grand').textContent = '฿' + fmtM(grandTotal);
+  document.getElementById('ps-grand').textContent = fmtM(grandTotal) + ' บาท';
   // summary line: N วัน | N รายการ | N ลัง
   const nDays = Object.keys(byDay).length;
   const nRows = _summaryData.length;
@@ -1004,7 +1033,7 @@ function printSummary() {
 
       <div class="modal-total">
         <span class="tlabel">ยอดชำระสุทธิ</span>
-        <span class="tval" id="m-total">฿0.00</span>
+        <span class="tval" id="m-total">0.00 บาท</span>
       </div>
     </div>
     <div class="modal-btns">
@@ -1079,7 +1108,7 @@ function printSummary() {
         <td>รวม</td>
         <td class="c" id="pb-bags-total">-</td>
         <td></td>
-        <td class="r" id="pb-net">฿0.00</td>
+        <td class="r" id="pb-net">0.00 บาท</td>
       </tr>
     </tfoot>
   </table>
@@ -1151,7 +1180,7 @@ function printSummary() {
       <div class="ps-grand-label">ยอดรวมทั้งหมด</div>
       <div id="ps-summary-line" style="font-size:12px;color:#555;margin-top:2px"></div>
     </div>
-    <div class="ps-grand-val" id="ps-grand">฿0.00</div>
+    <div class="ps-grand-val" id="ps-grand">0.00 บาท</div>
   </div>
 
   <table class="ps-table">
